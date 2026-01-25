@@ -3,7 +3,7 @@ using Domain.Enum;
 
 namespace Domain.Entities.Details;
 
-public class ListingContact : BaseEntity
+public class ListingContact : BaseEntity<int>
 {
     public ContactRole Role { get; set; }
 

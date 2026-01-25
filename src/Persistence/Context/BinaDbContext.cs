@@ -1,11 +1,9 @@
 ﻿using Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-
-
-namespace Persistence.Context;
-
 using Domain.Entities.Details;
 using Microsoft.EntityFrameworkCore;
+namespace Persistence.Context;
+
+
 
 public class BinaDbContext : DbContext
 {

@@ -1,8 +1,10 @@
-﻿namespace Domain.Entities.Details;
+﻿using Domain.Entities.Common;
 
-public class SaleDetails
+namespace Domain.Entities.Details;
+
+public class SaleDetails:BaseEntity<int>
 {
-    public int Id { get; set; }
+
 
     public decimal Price { get; set; }     
     public bool HasMortgage { get; set; }  
