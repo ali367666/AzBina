@@ -2,10 +2,10 @@
 
 namespace Domain.Entities;
 
-public class District: BaseEntity
+public class District: BaseEntity<int>
 {
 
     public string Name { get; set; } = null!;
     public int CityId { get; set; }
-    public City City { get; set; } = null!;
+    public City ?City { get; set; }
 }

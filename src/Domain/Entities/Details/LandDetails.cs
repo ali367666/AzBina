@@ -2,7 +2,7 @@
 
 namespace Domain.Entities.Details;
 
-public class LandDetails : BaseEntity
+public class LandDetails : BaseEntity<int>
 {
     public double LandAreaSot { get; set; }
 

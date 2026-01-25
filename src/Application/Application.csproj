@@ -8,8 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Abstracts\Services\" />
-    <Folder Include="Abstracts\Repositories\" />
-    <Folder Include="DTOs\" />
     <Folder Include="Shared\Helpers\" />
     <Folder Include="Shared\Settings\" />
     <Folder Include="Validations\" />
@@ -26,6 +24,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 
 </Project>

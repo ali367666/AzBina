@@ -12,7 +12,7 @@ using Persistence.Context;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(BinaDbContext))]
-    [Migration("20260122132016_CreateNewProject")]
+    [Migration("20260124195116_CreateNewProject")]
     partial class CreateNewProject
     {
         /// <inheritdoc />
@@ -191,6 +191,9 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
@@ -199,6 +202,9 @@ namespace Persistence.Migrations
 
                     b.Property<int>("RentType")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -216,6 +222,9 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("HasExtract")
                         .HasColumnType("bit");
 
@@ -227,6 +236,9 @@ namespace Persistence.Migrations
 
                     b.Property<int>("PropertyListingId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 

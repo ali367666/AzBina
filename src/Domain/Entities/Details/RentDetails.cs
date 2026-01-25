@@ -1,10 +1,10 @@
-﻿using Domain.Enum;
+﻿using Domain.Entities.Common;
+using Domain.Enum;
 
 namespace Domain.Entities.Details;
 
-public class RentDetails
+public class RentDetails:BaseEntity<int>
 {
-    public int Id { get; set; }
 
     public RentType RentType { get; set; }  // Günlük / Aylıq
     public decimal Price { get; set; }

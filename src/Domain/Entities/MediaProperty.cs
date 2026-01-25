@@ -2,7 +2,7 @@
 
 namespace Domain.Entities;
 
-public class MediaProperty: BaseEntity
+public class MediaProperty: BaseEntity<int>
 {
     public string MediaUrl { get; set; } = null!;
     public string MediaType { get; set; } = null!;

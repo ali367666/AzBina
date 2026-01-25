@@ -4,7 +4,7 @@ using Domain.Enum;
 
 namespace Domain.Entities;
 
-public class PropertyListing : BaseEntity
+public class PropertyListing : BaseEntity<int>
 {
     public string Title { get; set; } = null!;
     public string Description { get; set; } = null!;
