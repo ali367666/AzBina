@@ -1,4 +1,5 @@
 ﻿using Application.Abstracts.Repositories;
+using Domain.Entities;
 using Domain.Entities.Common;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Context;
@@ -14,38 +15,45 @@ public class GenericRepository<TEntity,TKey> : IRepository<TEntity, TKey> where 
         _context = context;
         _table = _context.Set<TEntity>();
     }
-    public void Add(TEntity entity)
-    {
-        _table.Add(entity);
-    }
 
-    public List<TEntity> GetAll()
+    public async Task<List<TEntity>> GetAllAsync(CancellationToken ct = default)
     {
-        return _table.ToList();
+        return await _table.ToListAsync(ct);
 
     }
 
-    public TEntity? GetById(TKey id)
+    public Task<TEntity?> GetByIdAsync(TKey id, CancellationToken ct = default)
     {
-        return _table.Find(id);
+        return _table.FindAsync(new object?[] { id }, ct).AsTask();
     }
 
-   
-    public void Delete(TKey id)
+
+    public async Task AddAsync(TEntity entity, CancellationToken ct = default)
     {
-        var entity = GetById(id);
         if (entity == null)
-            return;
+            throw new ArgumentNullException(nameof(entity));
 
-        _table.Remove(entity);
+        await _table.AddAsync(entity, ct);
     }
 
     public void Update(TEntity entity)
     {
+        if (entity == null)
+            throw new ArgumentNullException(nameof(entity));
+
         _table.Update(entity);
     }
-    public void SaveChanges()
+
+    public void Delete(TEntity entity)
     {
-        _context.SaveChanges();
+        if (entity == null)
+            throw new ArgumentNullException(nameof(entity));
+
+        _table.Remove(entity);
+    }
+
+    public Task<int> SaveChangesAsync(CancellationToken ct = default)
+    {
+        return _context.SaveChangesAsync(ct);
     }
 }

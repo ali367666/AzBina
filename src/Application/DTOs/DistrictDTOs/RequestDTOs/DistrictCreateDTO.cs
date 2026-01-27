@@ -1,4 +1,4 @@
-﻿namespace Application.DTOs.DistrictDTOs;
+﻿namespace Application.DTOs.DistrictDTOs.RequestDTOs;
 
 public class DistrictCreateDTO
 {

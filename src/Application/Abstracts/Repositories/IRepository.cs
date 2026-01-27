@@ -1,14 +1,16 @@
-﻿using Domain.Entities.Common;
+﻿using Domain.Entities;
+using Domain.Entities.Common;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace Application.Abstracts.Repositories;
 
 public interface IRepository<TEntity,TKey>where TEntity : BaseEntity<TKey>
 {
-    List<TEntity> GetAll();
-    TEntity? GetById(TKey id);
-    void Add(TEntity entity);
+    Task<List<TEntity>> GetAllAsync(CancellationToken ct = default);
+    Task<TEntity?> GetByIdAsync(TKey id, CancellationToken ct = default);
+    Task AddAsync(TEntity entity, CancellationToken ct = default);
     void Update(TEntity entity);
-    void Delete(TKey id);
-    void SaveChanges();
+    void Delete(TEntity entity);
+    Task<int> SaveChangesAsync(CancellationToken ct = default);
+
 }

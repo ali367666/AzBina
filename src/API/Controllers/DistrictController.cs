@@ -1,7 +1,5 @@
-﻿using Application.Abstracts.Repositories;
-using Application.DTOs.DistrictDTOs;
-using Domain.Entities;
-using Microsoft.AspNetCore.Http;
+﻿using Application.Abstracts.Services;
+using Application.DTOs.DistrictDTOs.RequestDTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
@@ -10,57 +8,34 @@ namespace API.Controllers;
 [ApiController]
 public class DistrictController : ControllerBase
 {
-    private readonly IRepository<District, int> _repo;
-    public DistrictController(IRepository<District,int> repo)
+    private readonly IDistrictService _service;
+    public DistrictController(IDistrictService service)
     {
-        _repo = repo;
-        
+        _service = service;
+
     }
     [HttpGet]
-
-    public IActionResult GetAll()
+    public async Task<IActionResult> GetAllDistrict(CancellationToken ct = default)
     {
-        var district=_repo.GetAll();
-        return Ok(district);
+        var districts = await _service.GetAllDistrictAsync(ct);
+        return Ok(districts);
     }
-
-    [HttpDelete]
-
-    public IActionResult Delete(int id)
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetByIdDistrict(int id, CancellationToken ct = default)
     {
-        var district = _repo.GetById(id);
+        var district = await _service.GetByIdDistrictAsync(id, ct);
         if (district == null)
-        {
             return NotFound();
-        }
-        _repo.Delete(id);
-        _repo.SaveChanges();
         return Ok(district);
     }
+
     [HttpPost]
-
-    public IActionResult Add(District district)
+    public async Task<IActionResult> CreateDistrict([FromBody] DistrictCreateDTO dto, CancellationToken ct)
     {
-        _repo.Add(district);
-        _repo.SaveChanges();
+        if (dto == null) return BadRequest();
 
-        return Ok(district);
+        var created = await _service.CreateDistrictAsync(dto, ct);
+        return Ok(created);
     }
 
-    [HttpPut]
-
-    public IActionResult Update(int id, [FromBody] District updatedistrict)
-    {
-        var existing = _repo.GetById(id);
-        if (existing == null)
-        {
-            return NotFound();
-        }
-        existing.Name = updatedistrict.Name;
-        existing.CreatedAt = updatedistrict.CreatedAt;
-        existing.UpdatedAt = updatedistrict.UpdatedAt;
-        _repo.Update(existing);
-        _repo.SaveChanges();
-        return Ok(existing);
-    }
 }
