@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Abstracts\Services\" />
     <Folder Include="Shared\Helpers\" />
     <Folder Include="Shared\Settings\" />
     <Folder Include="Validations\" />
