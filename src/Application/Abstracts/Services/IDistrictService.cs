@@ -9,5 +9,7 @@ public interface IDistrictService
     Task<List<GetAllDistrict>> GetAllDistrictAsync(CancellationToken ct = default);
 
     Task<GetByIdDistrict?> GetByIdDistrictAsync(int id, CancellationToken ct = default);
+    Task<DistrictCreateDTO> DeleteDistrictAsync(int id, CancellationToken ct = default);
+    Task<DistrictCreateDTO> UpdateDistrictAsync(int id, DistrictCreateDTO dto, CancellationToken ct = default);
 
 }

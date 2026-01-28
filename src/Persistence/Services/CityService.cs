@@ -73,11 +73,8 @@ public class CityService: ICityService
 
         _cityRepository.Update(city);
         await _cityRepository.SaveChangesAsync(ct);
-
         return dto;
     }
-
-
     public async Task<CreateCityDTOs> DeleteByIdCityAsync(
         int id,
         CancellationToken ct = default)

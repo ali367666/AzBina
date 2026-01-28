@@ -31,6 +31,23 @@ public class DistrictService:IDistrictService
         return dto;
     }
 
+    public Task<DistrictCreateDTO> DeleteDistrictAsync(int id, CancellationToken ct = default)
+    {
+        var districtTask = _repo.GetByIdAsync(id, ct);
+        return districtTask.ContinueWith(async t =>
+        {
+            var district = t.Result;
+            if (district == null)
+                throw new ArgumentException("District tapılmadı.");
+            _repo.Delete(district);
+            await _repo.SaveChangesAsync(ct);
+            return new DistrictCreateDTO
+            {
+                Name = district.Name,
+                CityId = district.CityId
+            };
+        }, ct).Unwrap();
+    }
 
     public Task<List<GetAllDistrict>> GetAllDistrictAsync(CancellationToken ct = default)
     {
@@ -60,5 +77,21 @@ public class DistrictService:IDistrictService
             Name = district.Name
         };
     }
-    
+
+    public Task<DistrictCreateDTO> UpdateDistrictAsync(int id, DistrictCreateDTO dto, CancellationToken ct = default)
+    {
+        var districtTask = _repo.GetByIdAsync(id, ct);
+        return districtTask.ContinueWith(async t =>
+        {
+            var district = t.Result;
+            if (district == null)
+                throw new ArgumentException("District tapılmadı.");
+            if (string.IsNullOrWhiteSpace(dto.Name))
+                throw new ArgumentException("District name boş ola bilməz.");
+            district.Name = dto.Name.Trim();
+            _repo.Update(district);
+            await _repo.SaveChangesAsync(ct);
+            return dto;
+        }, ct).Unwrap();
+    }
 }
