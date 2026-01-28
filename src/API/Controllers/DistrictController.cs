@@ -37,5 +37,18 @@ public class DistrictController : ControllerBase
         var created = await _service.CreateDistrictAsync(dto, ct);
         return Ok(created);
     }
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> UpdateDistrict(int id, [FromBody] DistrictCreateDTO dto, CancellationToken ct)
+    {
+        if (dto == null) return BadRequest();
+        var updated = await _service.UpdateDistrictAsync(id, dto, ct);
+        return Ok(updated);
+    }
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteDistrict(int id, CancellationToken ct)
+    {
+        var deleted = await _service.DeleteDistrictAsync(id, ct);
+        return Ok(deleted);
+    }
 
 }
