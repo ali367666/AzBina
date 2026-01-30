@@ -4,4 +4,8 @@ namespace Application.Abstracts.Repositories;
 
 public interface ICityRepository:IRepository<City,int>
 {
+    Task<bool> ExistsByNameAsync(string name, CancellationToken ct = default);
+    
+    Task<bool> ExistsByIdAsync(int id, CancellationToken ct = default);
+    
 }

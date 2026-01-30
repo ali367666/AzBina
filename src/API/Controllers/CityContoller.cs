@@ -29,16 +29,14 @@ public class CityContoller : ControllerBase
         return Ok(result);
     }
     [HttpPost]
-    public async Task<IActionResult> CreateCity(
-        [FromBody] CreateCityDTOs dto,
-        CancellationToken ct = default)
+    public async Task<IActionResult> CreateCity([FromBody] CreateCityDTOs dto, CancellationToken ct = default)
     {
-        if (dto == null)
-            return BadRequest();
-
         var result = await _cityService.CreateCityAsync(dto, ct);
+        if (!result.Success) return BadRequest(result);
         return Ok(result);
     }
+
+
     [HttpDelete]
     public async Task<IActionResult> DeleteByIdCity(int id,CancellationToken ct=default)
     {
