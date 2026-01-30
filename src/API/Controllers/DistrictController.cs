@@ -1,6 +1,8 @@
 ﻿using Application.Abstracts.Services;
 using Application.DTOs.DistrictDTOs.RequestDTOs;
+using Application.Shared.Helpers.Responses;
 using Microsoft.AspNetCore.Mvc;
+using Persistence.Services;
 
 namespace API.Controllers;
 
@@ -30,13 +32,16 @@ public class DistrictController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateDistrict([FromBody] DistrictCreateDTO dto, CancellationToken ct)
+    public async Task<IActionResult> CreateDistrict([FromBody] DistrictCreateDTO dto,CancellationToken ct)
     {
-        if (dto == null) return BadRequest();
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        var created = await _service.CreateDistrictAsync(dto, ct);
-        return Ok(created);
+        var result = await _service.CreateDistrictAsync(dto, ct);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
     }
+
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateDistrict(int id, [FromBody] DistrictCreateDTO dto, CancellationToken ct)
     {

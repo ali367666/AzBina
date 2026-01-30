@@ -1,103 +1,102 @@
 ﻿using Application.Abstracts.Repositories;
 using Application.Abstracts.Services;
 using Application.DTOs.CityDTOs.RequestDTOs;
+using Application.Shared.Helpers.Responses;
+using AutoMapper;
+using Domain.Entities;
+using FluentValidation;
 
 namespace Persistence.Services;
 
 public class CityService: ICityService
 {
     private readonly ICityRepository _cityRepository;
-    public CityService(ICityRepository cityRepository)
+    private readonly IMapper _mapper;
+    private readonly IValidator<CreateCityDTOs> _createCityValidator;
+    public CityService(ICityRepository cityRepository,IMapper mapper,IValidator<CreateCityDTOs> validator)
     {
         _cityRepository = cityRepository;
+        _mapper = mapper;
+        _createCityValidator = validator;
     }
 
-    public async Task<CreateCityDTOs> CreateCityAsync(CreateCityDTOs dto, CancellationToken ct = default)
+    public async Task<BaseResponse> CreateCityAsync(CreateCityDTOs dto, CancellationToken ct = default)
     {
-        if (dto is null) throw new ArgumentNullException(nameof(dto));
-        if (string.IsNullOrWhiteSpace(dto.Name)) throw new ArgumentException("Name boş ola bilməz.");
+        await _createCityValidator.ValidateAndThrowAsync(dto, cancellationToken: ct);
+        var name = dto.Name!.Trim();
 
-        var city = new Domain.Entities.City
-        {
-            Name = dto.Name.Trim()
-        };
+        var exists = await _cityRepository.ExistsByNameAsync(name, ct);
+        if (exists)
+            return BaseResponse.Fail("Bu adda şəhər artıq mövcuddur.");
+
+        var city = _mapper.Map<City>(dto);
+        city.Name = name;
 
         await _cityRepository.AddAsync(city, ct);
         await _cityRepository.SaveChangesAsync(ct);
 
-        return dto; 
+        return BaseResponse.Ok("City yaradıldı.");
     }
-    public async Task<List<GetAllCityDTOs>> GetAllCityAsync(CancellationToken ct = default)
+
+    public async Task<BaseResponse<List<GetAllCityDTOs>>> GetAllCityAsync(CancellationToken ct = default)
     {
+
         var cities = await _cityRepository.GetAllAsync(ct);
 
-        return cities
-            .Select(c => new GetAllCityDTOs
-            {
-                Name = c.Name
-            })
-            .ToList();
+        var data = _mapper.Map<List<GetAllCityDTOs>>(cities);
+
+        return BaseResponse<List<GetAllCityDTOs>>.Ok(data, "City-lər gətirildi.");
     }
-    public async Task<GetByIdDTOs?> GetByIdCityAsync(int id, CancellationToken ct = default)
+    public async Task<BaseResponse<GetByIdDTOs?>> GetByIdCityAsync(int id, CancellationToken ct = default)
     {
         if (id <= 0)
-            throw new ArgumentException("Id düzgün deyil.");
+            return BaseResponse<GetByIdDTOs?>.Fail("Id düzgün deyil.");
 
         var city = await _cityRepository.GetByIdAsync(id, ct);
-
         if (city == null)
-            return null;
+            return BaseResponse<GetByIdDTOs?>.Fail($"Id={id} olan City tapılmadı.");
 
-        return new GetByIdDTOs
-        {
-            Id = city.Id,
-            Name = city.Name
-        };
+        var data = _mapper.Map<GetByIdDTOs>(city);
+
+        return BaseResponse<GetByIdDTOs?>.Ok(data, "City tapıldı.");
     }
-    public async Task<CreateCityDTOs> UpdateCityAsync(
+    public async Task<BaseResponse> UpdateCityAsync(
         int id,
         CreateCityDTOs dto,
         CancellationToken ct = default)
     {
+        await _createCityValidator.ValidateAndThrowAsync(dto, cancellationToken: ct);
         if (id <= 0)
-            throw new ArgumentException("Id düzgün deyil.");
+            return BaseResponse.Fail("Id düzgün deyil.");
 
         if (dto == null)
-            throw new ArgumentNullException(nameof(dto));
+            return BaseResponse.Fail("DTO boş ola bilməz.");
 
         var city = await _cityRepository.GetByIdAsync(id, ct);
         if (city == null)
-            throw new KeyNotFoundException($"Id={id} olan City tapılmadı.");
+            return BaseResponse.Fail($"Id={id} olan City tapılmadı.");
 
         city.Name = dto.Name.Trim();
-
         _cityRepository.Update(city);
         await _cityRepository.SaveChangesAsync(ct);
-        return dto;
+        return BaseResponse.Ok("City yeniləndi.");
+
     }
-    public async Task<CreateCityDTOs> DeleteByIdCityAsync(
+    public async Task<BaseResponse> DeleteByIdCityAsync(
         int id,
         CancellationToken ct = default)
     {
         if (id <= 0)
-            throw new ArgumentException("Id düzgün deyil.");
+            return BaseResponse.Fail("Id düzgün deyil.");
 
         var city = await _cityRepository.GetByIdAsync(id, ct);
         if (city == null)
-            throw new KeyNotFoundException($"Id={id} olan City tapılmadı.");
-
-        var deletedDto = new CreateCityDTOs
-        {
-            Name = city.Name
-        };
+            return BaseResponse.Fail($"Id={id} olan City tapılmadı.");
 
         _cityRepository.Delete(city);
-        await _cityRepository.SaveChangesAsync(ct);
+    await _cityRepository.SaveChangesAsync(ct);
 
-        return deletedDto;
+    return BaseResponse.Ok("City silindi.");
     }
-
-
-
 
 }

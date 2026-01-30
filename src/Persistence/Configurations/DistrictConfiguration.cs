@@ -14,7 +14,7 @@ public class DistrictConfiguration : IEntityTypeConfiguration<District>
 
         builder.Property(x => x.Name)
                .IsRequired()
-               .HasMaxLength(100);
+               .HasMaxLength(20);
 
         builder.Property(x => x.CityId)
                 .IsRequired();

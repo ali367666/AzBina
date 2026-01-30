@@ -9,13 +9,20 @@ public class CityConfiguration : IEntityTypeConfiguration<City>
     public void Configure(EntityTypeBuilder<City> builder)
     {
         builder.ToTable("Cities");
+
         builder.HasKey(x => x.Id);
+
         builder.Property(x => x.Name)
                .IsRequired()
-               .HasMaxLength(100);
+               .HasMaxLength(20);
+
+        
+        builder.HasIndex(x => x.Name)
+               .IsUnique();
+
         builder.HasMany(x => x.Districts)
-                .WithOne(d => d.City)
-                .HasForeignKey(d => d.CityId)
-                .OnDelete(DeleteBehavior.Restrict);
+               .WithOne(d => d.City)
+               .HasForeignKey(d => d.CityId)
+               .OnDelete(DeleteBehavior.Restrict);
     }
 }

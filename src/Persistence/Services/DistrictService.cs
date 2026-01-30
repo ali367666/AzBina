@@ -2,63 +2,81 @@
 using Application.Abstracts.Services;
 using Application.DTOs.CityDTOs.RequestDTOs;
 using Application.DTOs.DistrictDTOs.RequestDTOs;
+using Application.Shared.Helpers.Responses;
+using AutoMapper;
+using Domain.Entities;
+using FluentValidation;
 using Persistence.Repositories;
 
 namespace Persistence.Services;
 
 public class DistrictService:IDistrictService
 {
-    private readonly IDistrictRepository _repo;
-    public DistrictService(IDistrictRepository repo)
+    private readonly IDistrictRepository _districtRepository;
+    private readonly ICityRepository _cityRepository;
+    private readonly IMapper _mapper;
+    private readonly IValidator<DistrictCreateDTO> _createDistrictValidator;
+    public DistrictService(IDistrictRepository districtRepository,ICityRepository cityRepository,IMapper mapper,IValidator<DistrictCreateDTO> validator)
     {
-        _repo = repo;
+        _districtRepository = districtRepository;
+        _mapper = mapper;
+        _cityRepository = cityRepository;
+        _createDistrictValidator = validator;
     }
 
-    public async Task<DistrictCreateDTO> CreateDistrictAsync(DistrictCreateDTO dto, CancellationToken ct = default)
+    public async Task<BaseResponse> CreateDistrictAsync(DistrictCreateDTO dto, CancellationToken ct = default)
     {
-        if (dto is null) throw new ArgumentNullException(nameof(dto));
-        if (string.IsNullOrWhiteSpace(dto.Name)) throw new ArgumentException("District name boş ola bilməz.");
+        await _createDistrictValidator.ValidateAndThrowAsync(dto, cancellationToken: ct);
+        var name = dto.Name.Trim();
 
-        var district = new Domain.Entities.District
+
+        var cityExists = await _cityRepository.ExistsByIdAsync(dto.CityId, ct);
+        if (!cityExists)
+            throw new KeyNotFoundException("Daxil etdiyiniz CityId mövcud deyil.");
+
+        var exists = await _districtRepository.ExistsByNameAsync(name, ct);
+        if (exists)
+            throw new InvalidOperationException("Bu adda rayon artıq mövcuddur.");
+
+        var district = _mapper.Map<District>(dto);
+        district.Name = name;
+
+        await _districtRepository.AddAsync(district, ct);
+        await _districtRepository.SaveChangesAsync(ct);
+
+        return BaseResponse.Ok("District yaradıldı.");
+
+    }
+
+
+    public async Task<DistrictCreateDTO> DeleteDistrictAsync(int id, CancellationToken ct = default)
+    {
+        var district = await _districtRepository.GetByIdAsync(id, ct);
+
+        if (district == null)
+            throw new ArgumentException("District tapılmadı.");
+
+        _districtRepository.Delete(district);
+        await _districtRepository.SaveChangesAsync(ct);
+
+        return new DistrictCreateDTO
         {
-            Name = dto.Name.Trim(),
-            CityId = dto.CityId
+            Name = district.Name,
+            CityId = district.CityId
         };
-
-        await _repo.AddAsync(district, ct);
-        await _repo.SaveChangesAsync(ct);
-
-        return dto;
     }
 
-    public Task<DistrictCreateDTO> DeleteDistrictAsync(int id, CancellationToken ct = default)
+    public async Task<List<GetAllDistrict>> GetAllDistrictAsync(CancellationToken ct = default)
     {
-        var districtTask = _repo.GetByIdAsync(id, ct);
-        return districtTask.ContinueWith(async t =>
-        {
-            var district = t.Result;
-            if (district == null)
-                throw new ArgumentException("District tapılmadı.");
-            _repo.Delete(district);
-            await _repo.SaveChangesAsync(ct);
-            return new DistrictCreateDTO
-            {
-                Name = district.Name,
-                CityId = district.CityId
-            };
-        }, ct).Unwrap();
-    }
+        var districts = await _districtRepository.GetAllAsync(ct);
 
-    public Task<List<GetAllDistrict>> GetAllDistrictAsync(CancellationToken ct = default)
-    {
-        var districts =  _repo.GetAllAsync(ct);
-        return districts.ContinueWith(t => t.Result
+        return districts
             .Select(d => new GetAllDistrict
             {
                 Name = d.Name,
                 CityId = d.CityId
             })
-            .ToList(), ct);
+            .ToList();
     }
 
     public async Task<GetByIdDistrict?> GetByIdDistrictAsync(int id, CancellationToken ct = default)
@@ -66,7 +84,7 @@ public class DistrictService:IDistrictService
         if (id <= 0)
             throw new ArgumentException("Id düzgün deyil.");
 
-        var district = await _repo.GetByIdAsync(id, ct);
+        var district = await _districtRepository    .GetByIdAsync(id, ct);
 
         if (district == null)
             return null;
@@ -78,20 +96,21 @@ public class DistrictService:IDistrictService
         };
     }
 
-    public Task<DistrictCreateDTO> UpdateDistrictAsync(int id, DistrictCreateDTO dto, CancellationToken ct = default)
+    public async Task<DistrictCreateDTO> UpdateDistrictAsync(int id, DistrictCreateDTO dto, CancellationToken ct = default)
     {
-        var districtTask = _repo.GetByIdAsync(id, ct);
-        return districtTask.ContinueWith(async t =>
-        {
-            var district = t.Result;
-            if (district == null)
-                throw new ArgumentException("District tapılmadı.");
-            if (string.IsNullOrWhiteSpace(dto.Name))
-                throw new ArgumentException("District name boş ola bilməz.");
-            district.Name = dto.Name.Trim();
-            _repo.Update(district);
-            await _repo.SaveChangesAsync(ct);
-            return dto;
-        }, ct).Unwrap();
+        var district = await _districtRepository.GetByIdAsync(id, ct);
+
+        if (district == null)
+            throw new ArgumentException("District tapılmadı.");
+
+        if (string.IsNullOrWhiteSpace(dto.Name))
+            throw new ArgumentException("District name boş ola bilməz.");
+
+        district.Name = dto.Name.Trim();
+
+        _districtRepository.Update(district);
+        await _districtRepository.SaveChangesAsync(ct);
+
+        return dto;
     }
 }

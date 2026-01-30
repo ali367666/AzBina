@@ -1,10 +1,11 @@
 ﻿using Application.DTOs.DistrictDTOs.RequestDTOs;
+using Application.Shared.Helpers.Responses;
 
 namespace Application.Abstracts.Services;
 
 public interface IDistrictService
 {
-    Task<DistrictCreateDTO> CreateDistrictAsync(DistrictCreateDTO dto, CancellationToken ct = default);
+    Task <BaseResponse> CreateDistrictAsync(DistrictCreateDTO dto, CancellationToken ct = default);
 
     Task<List<GetAllDistrict>> GetAllDistrictAsync(CancellationToken ct = default);
 
