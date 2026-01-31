@@ -22,4 +22,10 @@ public class CityRepository: GenericRepository<City, int>, ICityRepository
         return await _context.Cities
             .AnyAsync(c => c.Id == id, ct);
     }
+    public async Task<City?> GetByIdWithDistrictsAsync(int id, CancellationToken ct = default)
+    {
+        return await _context.Cities
+            .Include(c => c.Districts)           // ✅ City -> Districts
+            .FirstOrDefaultAsync(c => c.Id == id, ct);
+    }
 }

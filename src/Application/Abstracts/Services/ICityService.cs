@@ -13,4 +13,5 @@ public interface ICityService
     Task<BaseResponse<GetByIdDTOs?>> GetByIdCityAsync(int id, CancellationToken ct = default);
     Task<BaseResponse>DeleteByIdCityAsync(int id,CancellationToken ct=default);
     Task<BaseResponse>UpdateCityAsync(int id,CreateCityDTOs dto,CancellationToken ct=default);
+    Task GetByIdCityWithDistrictsAsync(int id, CancellationToken ct);
 }

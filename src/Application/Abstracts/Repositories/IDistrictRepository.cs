@@ -6,5 +6,6 @@ namespace Application.Abstracts.Repositories;
 public interface IDistrictRepository: IRepository<District,int>
 {
     Task<bool> ExistsByNameAsync(string name, CancellationToken ct = default);
+    Task<bool> ExistsByIdAsync(int id, CancellationToken ct = default);
 
 }

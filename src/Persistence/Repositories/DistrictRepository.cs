@@ -17,4 +17,9 @@ public class DistrictRepository:GenericRepository<District,int>,IDistrictReposit
         return await _context.Districts
             .AnyAsync(c => c.Name.ToLower() == name.ToLower(), ct);
     }
+    public async Task<bool> ExistsByIdAsync(int id, CancellationToken ct = default)
+    {
+        return await _context.Cities
+            .AnyAsync(c => c.Id == id, ct);
+    }
 }

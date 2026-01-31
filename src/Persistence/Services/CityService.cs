@@ -1,6 +1,7 @@
 ﻿using Application.Abstracts.Repositories;
 using Application.Abstracts.Services;
 using Application.DTOs.CityDTOs.RequestDTOs;
+using Application.DTOs.CityDTOs.ResponseDTOs;
 using Application.Shared.Helpers.Responses;
 using AutoMapper;
 using Domain.Entities;
@@ -97,6 +98,26 @@ public class CityService: ICityService
     await _cityRepository.SaveChangesAsync(ct);
 
     return BaseResponse.Ok("City silindi.");
+    }
+
+
+    public async Task<BaseResponse<CityWithDistrictsResponseDTO>> GetByIdCityWithDistrictsAsync(int id, CancellationToken ct = default)
+    {
+        if (id <= 0)
+            return BaseResponse<CityWithDistrictsResponseDTO>.Fail("Id düzgün deyil.");
+
+        var city = await _cityRepository.GetByIdWithDistrictsAsync(id, ct);
+        if (city is null)
+            return BaseResponse<CityWithDistrictsResponseDTO>.Fail($"Id={id} olan City tapılmadı.");
+
+        var data = new CityWithDistrictsResponseDTO
+        {
+            Id = city.Id,
+            Name = city.Name,
+            DistrictNames = city.Districts.Select(d => d.Name).ToList()
+        };
+
+        return BaseResponse<CityWithDistrictsResponseDTO>.Ok(data, "City və district-lər gətirildi.");
     }
 
 }
