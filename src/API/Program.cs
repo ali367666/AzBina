@@ -3,9 +3,11 @@ using Application.Abstracts.Repositories;
 using Application.Abstracts.Services;
 using Application.DTOs.CityDTOs.RequestDTOs;
 using Application.DTOs.DistrictDTOs.RequestDTOs;
+using Application.DTOs.PropertyListeningDTOs.RequestDTOs;
 using Application.Shared.Helpers.Responses;
 using Application.Validations.CityValidation;
 using Application.Validations.DistrictValidation;
+using Application.Validations.PropertyListingValidation;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
@@ -27,12 +29,14 @@ builder.Services
     {
         fv.RegisterValidatorsFromAssemblyContaining<CreateDistrictValidation>();
         fv.RegisterValidatorsFromAssemblyContaining<CreateCityValidation>();
+        fv.RegisterValidatorsFromAssemblyContaining<CreatePropertyListingValidation>();
         // fv.DisableDataAnnotationsValidation = true; // istəsən aça bilərsən
     });
 
 // ✅ (opsional amma qarantili) explicit validator register
 builder.Services.AddScoped<IValidator<DistrictCreateDTO>, CreateDistrictValidation>();
 builder.Services.AddScoped<IValidator<CreateCityDTOs>, CreateCityValidation>();
+builder.Services.AddScoped<IValidator<CreatePropertyListing>, CreatePropertyListingValidation>();
 
 // ✅ Validation error-ları BaseResponse formatında
 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -63,6 +67,9 @@ builder.Services.AddScoped<ICityService, CityService>();
 
 builder.Services.AddScoped<IDistrictRepository, DistrictRepository>();
 builder.Services.AddScoped<IDistrictService, DistrictService>();
+
+builder.Services.AddScoped<IPropertyListeningRepository, PropertyListeningRepository>();
+builder.Services.AddScoped<IPropertyListingService, PropertyListingService>();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

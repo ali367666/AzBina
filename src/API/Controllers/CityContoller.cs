@@ -51,4 +51,12 @@ public class CityContoller : ControllerBase
         var result = await _cityService.UpdateCityAsync(id, dto, ct);
         return Ok(result);
     }
+    [HttpGet("{id:int}/districts")]
+    public async Task<IActionResult> GetCityWithDistricts(int id, CancellationToken ct)
+    {
+        var result = await _cityService.GetByIdCityWithDistrictsAsync(id, CancellationToken:ct);
+        if (!result.Success) return NotFound(result);
+        return Ok(result);
+    }
+
 }
