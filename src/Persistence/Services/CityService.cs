@@ -2,6 +2,7 @@
 using Application.Abstracts.Services;
 using Application.DTOs.CityDTOs.RequestDTOs;
 using Application.DTOs.CityDTOs.ResponseDTOs;
+using Application.Shared.Helpers;
 using Application.Shared.Helpers.Responses;
 using AutoMapper;
 using Domain.Entities;
@@ -23,14 +24,28 @@ public class CityService: ICityService
 
     public async Task<BaseResponse> CreateCityAsync(CreateCityDTOs dto, CancellationToken ct = default)
     {
+        // 1) Validation (qapıda yoxlama)
         await _createCityValidator.ValidateAndThrowAsync(dto, cancellationToken: ct);
-        var name = dto.Name!.Trim();
+        
 
+        // 2) Normalization (DB-yə standart formada yazmaq)
+        var name = NameNormalizer.NormalizeName(dto.Name);
+
+        // (Əgər validator NotEmpty yazıbsa bu checkə ehtiyac yoxdur,
+        // amma istəsən safety kimi saxlaya bilərsən.)
+        if (string.IsNullOrEmpty(name))
+            return BaseResponse.Fail("Şəhər adı boş ola bilməz.");
+
+        // 3) Eyni ad var?
         var exists = await _cityRepository.ExistsByNameAsync(name, ct);
         if (exists)
             return BaseResponse.Fail("Bu adda şəhər artıq mövcuddur.");
 
+        // 4) Mapping
+        // AutoMapper istifadə edirsənsə:
         var city = _mapper.Map<City>(dto);
+
+        // Normalized adı overwrite et (mapper dto-dan fərqli yaza bilər)
         city.Name = name;
 
         await _cityRepository.AddAsync(city, ct);
@@ -119,5 +134,4 @@ public class CityService: ICityService
 
         return BaseResponse<CityWithDistrictsResponseDTO>.Ok(data, "City və district-lər gətirildi.");
     }
-
 }

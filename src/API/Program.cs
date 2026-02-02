@@ -3,10 +3,12 @@ using Application.Abstracts.Repositories;
 using Application.Abstracts.Services;
 using Application.DTOs.CityDTOs.RequestDTOs;
 using Application.DTOs.DistrictDTOs.RequestDTOs;
+using Application.DTOs.MediaPropertyDTOs.RequestDTOs;
 using Application.DTOs.PropertyListeningDTOs.RequestDTOs;
 using Application.Shared.Helpers.Responses;
 using Application.Validations.CityValidation;
 using Application.Validations.DistrictValidation;
+using Application.Validations.MediaPropertyValidation;
 using Application.Validations.PropertyListingValidation;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -30,6 +32,7 @@ builder.Services
         fv.RegisterValidatorsFromAssemblyContaining<CreateDistrictValidation>();
         fv.RegisterValidatorsFromAssemblyContaining<CreateCityValidation>();
         fv.RegisterValidatorsFromAssemblyContaining<CreatePropertyListingValidation>();
+        fv.RegisterValidatorsFromAssemblyContaining<CreateMediaPropertyValidator>();
         // fv.DisableDataAnnotationsValidation = true; // istəsən aça bilərsən
     });
 
@@ -37,6 +40,7 @@ builder.Services
 builder.Services.AddScoped<IValidator<DistrictCreateDTO>, CreateDistrictValidation>();
 builder.Services.AddScoped<IValidator<CreateCityDTOs>, CreateCityValidation>();
 builder.Services.AddScoped<IValidator<CreatePropertyListing>, CreatePropertyListingValidation>();
+builder.Services.AddScoped<IValidator<CreateMediaProperty>, CreateMediaPropertyValidator>();
 
 // ✅ Validation error-ları BaseResponse formatında
 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -71,6 +75,9 @@ builder.Services.AddScoped<IDistrictService, DistrictService>();
 builder.Services.AddScoped<IPropertyListeningRepository, PropertyListeningRepository>();
 builder.Services.AddScoped<IPropertyListingService, PropertyListingService>();
 
+builder.Services.AddScoped<IMediaPropertyRepository, MediaRepository>();
+builder.Services.AddScoped<IMediaPropertyService, MediaPropertyService>();
+
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // ✅ Authorization istifadə edirsənsə, bu build-dən ƏVVƏL olmalıdır
@@ -87,12 +94,12 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // Global exception middleware (istəsən aç)
-app.UseMiddleware<ExceptionMiddleware>();
+//app.UseMiddleware<ExceptionMiddleware>();
 
 // Əgər [Authorize] istifadə etmirsənsə, bunu da söndürə bilərsən
 app.UseAuthorization();
 
 app.MapControllers();
-app.UseMiddleware<ExceptionMiddleware>();
+//app.UseMiddleware<ExceptionMiddleware>();
 
 app.Run();

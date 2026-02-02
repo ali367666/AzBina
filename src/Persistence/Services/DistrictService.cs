@@ -2,6 +2,7 @@
 using Application.Abstracts.Services;
 using Application.DTOs.CityDTOs.RequestDTOs;
 using Application.DTOs.DistrictDTOs.RequestDTOs;
+using Application.Shared.Helpers;
 using Application.Shared.Helpers.Responses;
 using AutoMapper;
 using Domain.Entities;
@@ -27,7 +28,7 @@ public class DistrictService:IDistrictService
     public async Task<BaseResponse> CreateDistrictAsync(DistrictCreateDTO dto, CancellationToken ct = default)
     {
         await _createDistrictValidator.ValidateAndThrowAsync(dto, cancellationToken: ct);
-        var name = dto.Name.Trim();
+        var name = NameNormalizer.NormalizeName(dto.Name);
 
 
         var cityExists = await _cityRepository.ExistsByIdAsync(dto.CityId, ct);
