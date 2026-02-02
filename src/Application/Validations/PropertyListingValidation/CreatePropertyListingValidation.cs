@@ -3,16 +3,19 @@ using FluentValidation;
 
 namespace Application.Validations.PropertyListingValidation;
 
-public class CreatePropertyListingValidation:AbstractValidator<CreatePropertyListing>
+public class CreatePropertyListingValidation
+    : AbstractValidator<CreatePropertyListing>
 {
     public CreatePropertyListingValidation()
     {
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Elanın başlığı boş ola bilməz.")
+            .MinimumLength(10).WithMessage("Elanın başlığı minimum 10 simvol olmalıdır.")
             .MaximumLength(100).WithMessage("Elanın başlığı 100 simvoldan çox ola bilməz.");
 
         RuleFor(x => x.Description)
             .NotEmpty().WithMessage("Elanın təsviri boş ola bilməz.")
+            .MinimumLength(20).WithMessage("Elanın təsviri minimum 20 simvol olmalıdır.")
             .MaximumLength(1000).WithMessage("Elanın təsviri 1000 simvoldan çox ola bilməz.");
 
         RuleFor(x => x.Area)

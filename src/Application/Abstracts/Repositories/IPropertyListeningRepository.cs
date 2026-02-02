@@ -4,5 +4,6 @@ namespace Application.Abstracts.Repositories;
 
 public interface IPropertyListeningRepository:IRepository<PropertyListing,int>
 {
+    Task<bool> ExistsByIdAsync(int id, CancellationToken ct = default);
 
 }

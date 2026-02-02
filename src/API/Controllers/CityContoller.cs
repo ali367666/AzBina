@@ -54,9 +54,8 @@ public class CityContoller : ControllerBase
     [HttpGet("{id:int}/districts")]
     public async Task<IActionResult> GetCityWithDistricts(int id, CancellationToken ct)
     {
-        var result = await _cityService.GetByIdCityWithDistrictsAsync(id, CancellationToken:ct);
+        var result = await _cityService.GetByIdCityWithDistrictsAsync(id, ct);
         if (!result.Success) return NotFound(result);
         return Ok(result);
     }
-
 }
