@@ -371,6 +371,32 @@ namespace Persistence.Migrations
                     b.ToTable("PropertyListings", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.UploadFile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UploadFiles");
+                });
+
             modelBuilder.Entity("Domain.Entities.Details.ApartmentDetails", b =>
                 {
                     b.HasOne("Domain.Entities.PropertyListing", "PropertyListing")

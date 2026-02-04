@@ -42,6 +42,7 @@ builder.Services.AddScoped<IValidator<CreateCityDTOs>, CreateCityValidation>();
 builder.Services.AddScoped<IValidator<CreatePropertyListing>, CreatePropertyListingValidation>();
 builder.Services.AddScoped<IValidator<CreateMediaProperty>, CreateMediaPropertyValidator>();
 
+
 // ✅ Validation error-ları BaseResponse formatında
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -77,6 +78,11 @@ builder.Services.AddScoped<IPropertyListingService, PropertyListingService>();
 
 builder.Services.AddScoped<IMediaPropertyRepository, MediaRepository>();
 builder.Services.AddScoped<IMediaPropertyService, MediaPropertyService>();
+builder.Services.AddScoped<IUploadFileService, UploadFileService>();
+
+
+
+
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -92,6 +98,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 // Global exception middleware (istəsən aç)
 //app.UseMiddleware<ExceptionMiddleware>();
