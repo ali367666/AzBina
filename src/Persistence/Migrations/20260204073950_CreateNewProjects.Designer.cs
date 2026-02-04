@@ -12,7 +12,7 @@ using Persistence.Context;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(BinaDbContext))]
-    [Migration("20260130104409_CreateNewProjects")]
+    [Migration("20260204073950_CreateNewProjects")]
     partial class CreateNewProjects
     {
         /// <inheritdoc />
@@ -372,6 +372,32 @@ namespace Persistence.Migrations
                     b.HasIndex("DistrictId");
 
                     b.ToTable("PropertyListings", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.UploadFile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UploadFiles");
                 });
 
             modelBuilder.Entity("Domain.Entities.Details.ApartmentDetails", b =>

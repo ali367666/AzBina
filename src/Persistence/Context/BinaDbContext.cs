@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Domain;
+using Domain.Entities;
 using Domain.Entities.Details;
 using Microsoft.EntityFrameworkCore;
 namespace Persistence.Context;
@@ -21,6 +22,7 @@ public class BinaDbContext : DbContext
     public DbSet<LandDetails> LandDetails { get; set; } = null!;
     public DbSet<RentDetails> RentDetails { get; set; } = null!;
     public DbSet<SaleDetails> SaleDetails { get; set; } = null!;
+    public DbSet<UploadFile> UploadFiles { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

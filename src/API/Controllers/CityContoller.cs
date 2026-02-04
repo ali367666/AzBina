@@ -38,9 +38,9 @@ public class CityContoller : ControllerBase
 
 
     [HttpDelete]
-    public async Task<IActionResult> DeleteByIdCity(int id,CancellationToken ct=default)
+    public async Task<IActionResult> DeleteByIdCity(int id, CancellationToken ct = default)
     {
-        var result=await _cityService.DeleteByIdCityAsync(id,ct);
+        var result = await _cityService.DeleteByIdCityAsync(id, ct);
         return Ok(result);
     }
     [HttpPut]
