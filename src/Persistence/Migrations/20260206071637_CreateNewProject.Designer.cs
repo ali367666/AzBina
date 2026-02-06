@@ -12,8 +12,8 @@ using Persistence.Context;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(BinaDbContext))]
-    [Migration("20260204073950_CreateNewProjects")]
-    partial class CreateNewProjects
+    [Migration("20260206071637_CreateNewProject")]
+    partial class CreateNewProject
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -296,7 +296,7 @@ namespace Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("MediaUrl")
+                    b.Property<string>("ObjectKey")
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");

@@ -2,140 +2,87 @@
 using Application.Abstracts.Services;
 using Application.DTOs.MediaPropertyDTOs.RequestDTOs;
 using Application.Shared.Helpers.Responses;
-using AutoMapper;
-using FluentValidation;
 using Domain.Entities;
+using FluentValidation;
 
 namespace Persistence.Services;
 
 public class MediaPropertyService : IMediaPropertyService
 {
-    private readonly IMediaPropertyRepository _mediaPropertyRepository;
-    private readonly IPropertyListeningRepository _propertyListingRepository;
-    private readonly IMapper _mapper;
-
-    // ✅ DTO validator olmalıdır (validator class yox)
-    private readonly IValidator<CreateMediaProperty> _createValidator;
+    private readonly IMediaPropertyRepository _mediaRepo;
+    private readonly IPropertyListeningRepository _listingRepo;
+    private readonly IFileStorageService _storage;
+    private readonly IValidator<CreateMediaProperty> _validator;
 
     public MediaPropertyService(
-        IMediaPropertyRepository mediaPropertyRepository,
-        IPropertyListeningRepository propertyListingRepository,
-        IMapper mapper,
-        IValidator<CreateMediaProperty> createValidator)
+        IMediaPropertyRepository mediaRepo,
+        IPropertyListeningRepository listingRepo,
+        IFileStorageService storage,
+        IValidator<CreateMediaProperty> validator)
     {
-        _mediaPropertyRepository = mediaPropertyRepository;
-        _propertyListingRepository = propertyListingRepository;
-        _mapper = mapper;
-        _createValidator = createValidator;
+        _mediaRepo = mediaRepo;
+        _listingRepo = listingRepo;
+        _storage = storage;
+        _validator = validator;
+    }
+
+    public async Task<BaseResponse> CreateMediaAsync(CreateMediaProperty dto, CancellationToken ct = default)
+    {
+        await _validator.ValidateAndThrowAsync(dto, cancellationToken: ct);
+
+        var exists = await _listingRepo.ExistsByIdAsync(dto.PropertyListingId, ct);
+        if (!exists) return BaseResponse.Fail("Property tapılmadı.");
+
+        var existingCount = await _mediaRepo.CountByPropertyListingIdAsync(dto.PropertyListingId, ct);
+        if (existingCount >= 10) return BaseResponse.Fail("1 elan üçün 10 fotodan çox əlavə etmək olmaz.");
+        if (existingCount + dto.Files.Count > 10)
+            return BaseResponse.Fail($"Maksimum 10 şəkil olar. Hazırda var: {existingCount}, göndərmisən: {dto.Files.Count}.");
+
+        var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png" };
+
+        var maxOrder = await _mediaRepo.GetMaxOrderByPropertyListingIdAsync(dto.PropertyListingId, ct);
+        var order = maxOrder;
+
+        foreach (var file in dto.Files)
+        {
+            var ext = Path.GetExtension(file.FileName);
+            if (string.IsNullOrWhiteSpace(ext) || !allowed.Contains(ext))
+                return BaseResponse.Fail("Yalnız .jpg, .jpeg, .png qəbul olunur.");
+
+            var objectKey = await _storage.SaveAsync(
+                file.OpenReadStream(),
+                file.FileName,          // ext buradan götürülür
+                file.ContentType,
+                dto.PropertyListingId,
+                ct);
+
+            var media = new MediaProperty
+            {
+                PropertyListingId = dto.PropertyListingId,
+                ObjectKey = objectKey,
+                MediaType = "image",
+                Order = ++order
+            };
+
+            await _mediaRepo.AddAsync(media, ct);
+        }
+
+        await _mediaRepo.SaveChangesAsync(ct);
+
+        return BaseResponse.Ok($"Şəkillər əlavə olundu. Yeni toplam: {existingCount + dto.Files.Count}");
     }
 
 
-    public async Task<BaseResponse> CreateMediaAsync(
-        CreateMediaProperty dto,
-        CancellationToken ct = default)
-    {
-        // 1️⃣ DTO validation
-        await _createValidator.ValidateAndThrowAsync(dto, cancellationToken: ct);
+    // Create-only dedin deyə qalanları hələlik belə qala bilər
+    public Task<BaseResponse> DeleteByIdMediaAsync(int id, CancellationToken ct = default)
+        => throw new NotImplementedException();
 
-        // 2️⃣ Property mövcuddurmu?
-        var propertyExists =
-            await _propertyListingRepository.ExistsByIdAsync(dto.PropertyListingId, ct);
+    public Task<BaseResponse<List<GetAllMediaProperty>>> GetAllMediaAsync(CancellationToken ct = default)
+        => throw new NotImplementedException();
 
-        if (!propertyExists)
-            return BaseResponse.Fail("Property tapılmadı.");
+    public Task<BaseResponse<GetByIdMediaProperty?>> GetByIdMediaAsync(int id, CancellationToken ct = default)
+        => throw new NotImplementedException();
 
-        // 3️⃣ 1 elan üçün maksimum 10 foto
-        var count =
-            await _mediaPropertyRepository.CountByPropertyListingIdAsync(
-                dto.PropertyListingId, ct);
-
-        if (count >= 10)
-            return BaseResponse.Fail("1 elan üçün 10 fotodan çox əlavə etmək olmaz.");
-
-        // 4️⃣ Order avtomatik (1..10)
-        var maxOrder =
-            await _mediaPropertyRepository.GetMaxOrderByPropertyListingIdAsync(
-                dto.PropertyListingId, ct);
-
-        var nextOrder = maxOrder + 1;
-
-        if (nextOrder > 10)
-            return BaseResponse.Fail("1 elan üçün 10 fotodan çox əlavə etmək olmaz.");
-
-        // 5️⃣ Map + save
-        var media = _mapper.Map<MediaProperty>(dto);
-        media.Order = nextOrder;
-
-        await _mediaPropertyRepository.AddAsync(media, ct);
-        await _mediaPropertyRepository.SaveChangesAsync(ct);
-
-        return BaseResponse.Ok($"Media əlavə olundu (Order = {nextOrder}).");
-    }
-
-
-
-
-    public async Task<BaseResponse> DeleteByIdMediaAsync(int id, CancellationToken ct = default)
-    {
-        if (id <= 0)
-            return BaseResponse.Fail("Id düzgün deyil.");
-
-        var media = await _mediaPropertyRepository.GetByIdAsync(id, ct);
-        if (media is null)
-            return BaseResponse.Fail($"Id={id} olan Media tapılmadı.");
-
-        _mediaPropertyRepository.Delete(media);
-        await _mediaPropertyRepository.SaveChangesAsync(ct);
-
-        return BaseResponse.Ok("Media silindi.");
-    }
-
-    public async Task<BaseResponse<List<GetAllMediaProperty>>> GetAllMediaAsync(CancellationToken ct = default)
-    {
-        var medias = await _mediaPropertyRepository.GetAllAsync(ct);
-
-        var list = medias?.ToList() ?? new List<MediaProperty>();
-        var data = _mapper.Map<List<GetAllMediaProperty>>(list);
-
-        return BaseResponse<List<GetAllMediaProperty>>.Ok(data);
-    }
-
-    public async Task<BaseResponse<GetByIdMediaProperty?>> GetByIdMediaAsync(int id, CancellationToken ct = default)
-    {
-        if (id <= 0)
-            return BaseResponse<GetByIdMediaProperty?>.Fail("Id düzgün deyil.");
-
-        var media = await _mediaPropertyRepository.GetByIdAsync(id, ct);
-        if (media is null)
-            return BaseResponse<GetByIdMediaProperty?>.Fail($"Id={id} olan Media tapılmadı.");
-
-        var data = _mapper.Map<GetByIdMediaProperty>(media);
-        return BaseResponse<GetByIdMediaProperty?>.Ok(data, "Media tapıldı.");
-    }
-
-    public async Task<BaseResponse> UpdatePropertyAsync(int id, CreateMediaProperty dto, CancellationToken ct = default)
-    {
-        if (id <= 0)
-            return BaseResponse.Fail("Id düzgün deyil.");
-
-        await _createValidator.ValidateAndThrowAsync(dto, cancellationToken: ct);
-
-        // ✅ Update ediləcək media var?
-        var media = await _mediaPropertyRepository.GetByIdAsync(id, ct);
-        if (media is null)
-            return BaseResponse.Fail($"Id={id} olan Media tapılmadı.");
-
-        // ✅ Yeni PropertyListingId göndərilibsə o property var?
-        var propertyExists = await _propertyListingRepository.ExistsByIdAsync(dto.PropertyListingId, ct);
-        if (!propertyExists)
-            return BaseResponse.Fail($"Id={dto.PropertyListingId} olan Property tapılmadı.");
-
-        // ✅ Mövcud entity üzərinə map et
-        _mapper.Map(dto, media);
-
-        _mediaPropertyRepository.Update(media);
-        await _mediaPropertyRepository.SaveChangesAsync(ct);
-
-        return BaseResponse.Ok("Media yeniləndi.");
-    }
+    public Task<BaseResponse> UpdatePropertyAsync(int id, CreateMediaProperty dto, CancellationToken ct = default)
+        => throw new NotImplementedException();
 }

@@ -12,7 +12,7 @@ public class MediaPropertyConfiguration : IEntityTypeConfiguration<MediaProperty
 
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.MediaUrl)
+        builder.Property(x => x.ObjectKey)
                .IsRequired()
                .HasMaxLength(1000);
 
