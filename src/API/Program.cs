@@ -12,38 +12,43 @@ using Application.Validations.MediaPropertyValidation;
 using Application.Validations.PropertyListingValidation;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Infrastructure.Extensions;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Context;
 using Persistence.Repositories;
 using Persistence.Services;
 using System.Text.Json.Serialization;
+using API.Extensions;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ MVC mütləq olmalıdır (yoxsa validation da işləməz)
+#region Controllers + Validation
 builder.Services
     .AddControllers()
     .AddJsonOptions(o =>
-        o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles
-    )
+        o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
     .AddFluentValidation(fv =>
     {
         fv.RegisterValidatorsFromAssemblyContaining<CreateDistrictValidation>();
         fv.RegisterValidatorsFromAssemblyContaining<CreateCityValidation>();
         fv.RegisterValidatorsFromAssemblyContaining<CreatePropertyListingValidation>();
         fv.RegisterValidatorsFromAssemblyContaining<CreateMediaPropertyValidator>();
-        // fv.DisableDataAnnotationsValidation = true; // istəsən aça bilərsən
     });
 
-// ✅ (opsional amma qarantili) explicit validator register
+// Explicit validators
 builder.Services.AddScoped<IValidator<DistrictCreateDTO>, CreateDistrictValidation>();
 builder.Services.AddScoped<IValidator<CreateCityDTOs>, CreateCityValidation>();
 builder.Services.AddScoped<IValidator<CreatePropertyListing>, CreatePropertyListingValidation>();
 builder.Services.AddScoped<IValidator<CreateMediaProperty>, CreateMediaPropertyValidator>();
 
+builder.Services.AddApplicationServices(builder.Configuration);
 
-// ✅ Validation error-ları BaseResponse formatında
+#endregion
+
+#region Validation Response Format
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
@@ -57,40 +62,51 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
         return new BadRequestObjectResult(BaseResponse.Fail(message));
     };
 });
+#endregion
 
+#region Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+#endregion
 
+#region Database
 builder.Services.AddDbContext<BinaDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
+#endregion
 
-// DI
+#region Repositories
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(GenericRepository<,>));
 
 builder.Services.AddScoped<ICityRepository, CityRepository>();
-builder.Services.AddScoped<ICityService, CityService>();
-
 builder.Services.AddScoped<IDistrictRepository, DistrictRepository>();
-builder.Services.AddScoped<IDistrictService, DistrictService>();
-
 builder.Services.AddScoped<IPropertyListeningRepository, PropertyListeningRepository>();
-builder.Services.AddScoped<IPropertyListingService, PropertyListingService>();
-
 builder.Services.AddScoped<IMediaPropertyRepository, MediaRepository>();
+#endregion
+
+#region Services
+builder.Services.AddScoped<ICityService, CityService>();
+builder.Services.AddScoped<IDistrictService, DistrictService>();
+builder.Services.AddScoped<IPropertyListingService, PropertyListingService>();
 builder.Services.AddScoped<IMediaPropertyService, MediaPropertyService>();
-builder.Services.AddScoped<IUploadFileService, UploadFileService>();
+#endregion
 
+/*#region MinIO (IMPORTANT)
+builder.Services.AddMinioStorage(builder.Configuration);
+builder.Services.AddScoped<IFileStorageService, S3MinioFileStorageService>();
+#endregion*/
 
-
-
-
+#region AutoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+#endregion
 
-// ✅ Authorization istifadə edirsənsə, bu build-dən ƏVVƏL olmalıdır
+#region Authorization
 builder.Services.AddAuthorization();
+#endregion
 
 var app = builder.Build();
 
+#region Middleware Pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -101,12 +117,11 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 // Global exception middleware (istəsən aç)
-//app.UseMiddleware<ExceptionMiddleware>();
+// app.UseMiddleware<ExceptionMiddleware>();
 
-// Əgər [Authorize] istifadə etmirsənsə, bunu da söndürə bilərsən
 app.UseAuthorization();
 
 app.MapControllers();
-//app.UseMiddleware<ExceptionMiddleware>();
+#endregion
 
 app.Run();

@@ -12,7 +12,7 @@ public class UploadFileService : IUploadFileService
     private readonly IWebHostEnvironment _env;
     private readonly BinaDbContext _db;
 
-    private const long MaxBytes = 10 * 1024 * 1024; // 10MB
+    private const long MaxBytes = 10 * 1024 * 1024; 
 
     private static readonly HashSet<string> AllowedExtensions =
         new(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png" };

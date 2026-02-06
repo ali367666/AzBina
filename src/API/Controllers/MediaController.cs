@@ -15,11 +15,10 @@ public class MediaController : ControllerBase
         _mediaPropertyService = mediaPropertyService;
     }
 
-    // POST: api/Media
-    [HttpPost]
-    public async Task<IActionResult> Create(
-        [FromBody] CreateMediaProperty dto,
-        CancellationToken ct)
+    // ✅ Upload (multipart/form-data) - birdən çox şəkil
+    [HttpPost("upload")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> Upload([FromForm] CreateMediaProperty dto, CancellationToken ct)
     {
         var result = await _mediaPropertyService.CreateMediaAsync(dto, ct);
 
@@ -39,9 +38,7 @@ public class MediaController : ControllerBase
 
     // GET: api/Media/{id}
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(
-        [FromRoute] int id,
-        CancellationToken ct)
+    public async Task<IActionResult> GetById([FromRoute] int id, CancellationToken ct)
     {
         var result = await _mediaPropertyService.GetByIdMediaAsync(id, ct);
 
@@ -51,12 +48,9 @@ public class MediaController : ControllerBase
         return Ok(result);
     }
 
-    // PUT: api/Media/{id}
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(
-        [FromRoute] int id,
-        [FromBody] CreateMediaProperty dto,
-        CancellationToken ct)
+    // PUT: api/Media/{id}  (əgər həqiqətən update lazımdırsa)
+    /*[HttpPut("{id:int}")]
+    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateMediaProperty dto, CancellationToken ct)
     {
         var result = await _mediaPropertyService.UpdatePropertyAsync(id, dto, ct);
 
@@ -64,13 +58,11 @@ public class MediaController : ControllerBase
             return BadRequest(result);
 
         return Ok(result);
-    }
+    }*/
 
     // DELETE: api/Media/{id}
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(
-        [FromRoute] int id,
-        CancellationToken ct)
+    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken ct)
     {
         var result = await _mediaPropertyService.DeleteByIdMediaAsync(id, ct);
 

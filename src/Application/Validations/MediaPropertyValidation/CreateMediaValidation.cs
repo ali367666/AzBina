@@ -7,19 +7,15 @@ public class CreateMediaPropertyValidator : AbstractValidator<CreateMediaPropert
 {
     public CreateMediaPropertyValidator()
     {
-        RuleFor(x => x.MediaUrl)
-            .NotEmpty().WithMessage("Media linki boş ola bilməz.")
-            .Must(BeValidUrl).WithMessage("Media linki düzgün URL formatında deyil.");
-
-        RuleFor(x => x.MediaType)
-            .NotEmpty().WithMessage("Media tipi boş ola bilməz.")
-            .Must(BeValidMediaType)
-            .WithMessage("Media tipi yalnız 'image' ola bilər.");
-
         RuleFor(x => x.PropertyListingId)
-            .GreaterThan(0).WithMessage("PropertyListingId düzgün deyil.");
+            .GreaterThan(0)
+            .WithMessage("PropertyListingId düzgün deyil.");
 
-        
+        RuleFor(x => x.Files)
+            .NotEmpty()
+            .WithMessage("Ən azı bir şəkil əlavə edilməlidir.");
+
+
     }
 
     private static bool BeValidUrl(string url)

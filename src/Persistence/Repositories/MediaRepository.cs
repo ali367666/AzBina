@@ -21,6 +21,14 @@ public class MediaRepository
             .CountAsync(m => m.PropertyListingId == propertyListingId, ct);
     }
 
+    public async Task<List<MediaProperty>> GetByPropertyListingIdAsync(int propertyListingId, CancellationToken ct = default)
+    {
+        return await _context.MediaProperties
+            .Where(m => m.PropertyListingId == propertyListingId)
+            .OrderBy(m => m.Order)
+            .ToListAsync(ct);
+    }
+
     public async Task<int> GetMaxOrderByPropertyListingIdAsync(int propertyListingId, CancellationToken ct = default)
     {
         return await _context.MediaProperties
