@@ -1,15 +1,16 @@
 ﻿using Application.Abstracts.Services;
 using Application.DTOs.CityDTOs.RequestDTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class CityContoller : ControllerBase
+public class CityController : ControllerBase
 {
     private readonly ICityService _cityService;
-    public CityContoller(ICityService cityService)
+    public CityController(ICityService cityService)
     {
         _cityService = cityService;
     }
@@ -28,6 +29,7 @@ public class CityContoller : ControllerBase
             return NotFound();
         return Ok(result);
     }
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> CreateCity([FromBody] CreateCityDTOs dto, CancellationToken ct = default)
     {
