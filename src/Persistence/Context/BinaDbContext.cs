@@ -1,12 +1,14 @@
 ﻿using Domain;
 using Domain.Entities;
 using Domain.Entities.Details;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 namespace Persistence.Context;
 
 
 
-public class BinaDbContext : DbContext
+public class BinaDbContext : IdentityDbContext<User, IdentityRole<int>, int>
 {
     public BinaDbContext(DbContextOptions<BinaDbContext> options)
         : base(options)
@@ -23,6 +25,8 @@ public class BinaDbContext : DbContext
     public DbSet<RentDetails> RentDetails { get; set; } = null!;
     public DbSet<SaleDetails> SaleDetails { get; set; } = null!;
     public DbSet<UploadFile> UploadFiles { get; set; } = null!;
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

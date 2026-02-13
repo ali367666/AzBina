@@ -1,4 +1,5 @@
-﻿namespace Application.Shared.Helpers.Responses;
+﻿
+namespace Application.Shared.Helpers.Responses;
 
 public class BaseResponse<T>
 {
@@ -22,5 +23,4 @@ public class BaseResponse
 
     public static BaseResponse Fail(string message)
         => new() { Success = false, Message = message };
-
 }
