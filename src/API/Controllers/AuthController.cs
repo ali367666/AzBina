@@ -57,4 +57,18 @@ public class AuthController : ControllerBase
 
         return Ok(BaseResponse<TokenResponse>.Ok(tokenResponse));
     }
+    [HttpGet("confirm-email")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ConfirmEmail([FromQuery] int userId, [FromQuery] string token, CancellationToken ct)
+    {
+        if (userId <= 0 || string.IsNullOrWhiteSpace(token))
+            return BadRequest("userId və token boş ola bilməz.");
+
+        var ok = await _authService.ConfirmEmailAsync(userId, token, ct);
+
+        if (!ok)
+            return BadRequest("Token etibarsızdır və ya vaxtı keçib.");
+
+        return Ok("Email təsdiqləndi.");
+    }
 }

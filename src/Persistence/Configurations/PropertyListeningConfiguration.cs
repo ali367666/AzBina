@@ -82,5 +82,11 @@ public class PropertyListingConfiguration : IEntityTypeConfiguration<PropertyLis
                .WithOne(ld => ld.PropertyListing)
                .HasForeignKey<LandDetails>(ld => ld.PropertyListingId)
                .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(p => p.User)
+               .WithMany(u => u.PropertyListings)
+               .HasForeignKey(p => p.UserId)
+               .OnDelete(DeleteBehavior.Restrict);
+
     }
 }

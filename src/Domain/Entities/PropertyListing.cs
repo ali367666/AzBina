@@ -35,6 +35,10 @@ public class PropertyListing : BaseEntity<int>
 
     // Login yoxdur deyə: hər elanın kontaktı MÜTLƏQ olmalıdır
     public ListingContact Contact { get; set; } = null!;
+
+    //User ucun istifade etdiyim 
+    public int? UserId { get; set; }
+    public User? User { get; set; }
 }
 
 

@@ -1,63 +1,56 @@
 ﻿using Application.Abstracts.Services;
 using Application.DTOs.CityDTOs.RequestDTOs;
+using Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
 
-[Route("api/[controller]")]
 [ApiController]
+[Route("api/[controller]")]
 public class CityController : ControllerBase
 {
     private readonly ICityService _cityService;
+
     public CityController(ICityService cityService)
     {
         _cityService = cityService;
     }
 
+    // Açıq qala bilər
     [HttpGet]
-    public async Task<IActionResult> GetAllCity(CancellationToken ct = default)
-    {
-        var result = await _cityService.GetAllCityAsync(ct);
-        return Ok(result);
-    }
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAll(CancellationToken ct = default)
+        => Ok(await _cityService.GetAllCityAsync(ct));
+
+    // Açıq qala bilər
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetByIdCity(int id, CancellationToken ct = default)
+    [AllowAnonymous]
+    public async Task<IActionResult> GetById([FromRoute] int id, CancellationToken ct = default)
     {
         var result = await _cityService.GetByIdCityAsync(id, ct);
-        if (result == null)
-            return NotFound();
-        return Ok(result);
+        return result is null ? NotFound() : Ok(result);
     }
-    [Authorize]
+
+    // Admin only
+    [Authorize(Policy = Policies.ManageCities)]
     [HttpPost]
-    public async Task<IActionResult> CreateCity([FromBody] CreateCityDTOs dto, CancellationToken ct = default)
+    public async Task<IActionResult> Create([FromBody] CreateCityDTOs dto, CancellationToken ct = default)
     {
         var result = await _cityService.CreateCityAsync(dto, ct);
-        if (!result.Success) return BadRequest(result);
-        return Ok(result);
+        return !result.Success ? BadRequest(result) : Ok(result);
     }
 
+    // Admin only
+    [Authorize(Policy = Policies.ManageCities)]
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] CreateCityDTOs dto, CancellationToken ct = default)
+        => Ok(await _cityService.UpdateCityAsync(id, dto, ct));
 
-    [HttpDelete]
-    public async Task<IActionResult> DeleteByIdCity(int id, CancellationToken ct = default)
-    {
-        var result = await _cityService.DeleteByIdCityAsync(id, ct);
-        return Ok(result);
-    }
-    [HttpPut]
-    public async Task<IActionResult> UpdateCity(int id, [FromBody] CreateCityDTOs dto, CancellationToken ct = default)
-    {
-        if (dto == null)
-            return BadRequest();
-        var result = await _cityService.UpdateCityAsync(id, dto, ct);
-        return Ok(result);
-    }
-    [HttpGet("{id:int}/districts")]
-    public async Task<IActionResult> GetCityWithDistricts(int id, CancellationToken ct)
-    {
-        var result = await _cityService.GetByIdCityWithDistrictsAsync(id, ct);
-        if (!result.Success) return NotFound(result);
-        return Ok(result);
-    }
+    // Admin only
+    [Authorize(Policy = Policies.ManageCities)]
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken ct = default)
+        => Ok(await _cityService.DeleteByIdCityAsync(id, ct));
+
 }

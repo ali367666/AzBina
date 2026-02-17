@@ -1,4 +1,4 @@
-using API.Options;
+using API.Extensions;
 using Application.Abstracts.Repositories;
 using Application.Abstracts.Services;
 using Application.DTOs.CityDTOs.RequestDTOs;
@@ -17,12 +17,10 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Infrastructure.Extensions;
 using Infrastructure.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.Configuration;
 using Persistence.Context;
 using Persistence.Repositories;
 using Persistence.Services;
@@ -65,39 +63,6 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 });
 #endregion
 
-#region Swagger + JWT Bearer
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "BinaLite API", Version = "v1" });
-
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Enter: Bearer {your JWT token}"
-    });
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-});
-#endregion
-
 #region DbContext
 builder.Services.AddDbContext<BinaDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -118,20 +83,6 @@ builder.Services
     .AddDefaultTokenProviders();
 #endregion
 
-#region JWT Auth
-builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer();
-
-builder.Services.ConfigureOptions<ConfigureJwtBearerOptions>();
-builder.Services.AddAuthorization();
-#endregion
-
 #region Repositories
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(GenericRepository<,>));
 builder.Services.AddScoped<ICityRepository, CityRepository>();
@@ -141,12 +92,14 @@ builder.Services.AddScoped<IMediaPropertyRepository, MediaRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 #endregion
 
-#region Services
+#region Domain Services
 builder.Services.AddScoped<ICityService, CityService>();
 builder.Services.AddScoped<IDistrictService, DistrictService>();
 builder.Services.AddScoped<IPropertyListingService, PropertyListingService>();
 builder.Services.AddScoped<IMediaPropertyService, MediaPropertyService>();
+#endregion
 
+#region Auth / Token Services
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -161,43 +114,17 @@ builder.Services.AddScoped<IFileStorageService, S3MinioFileStorageService>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 #endregion
 
+#region EmailServices
+
+
+#endregion
+
+// ✅ Addım 6: JWT Auth + Authorization Policies + Swagger + Options (Jwt/Seed) hamısı burda
+builder.Services.AddAppServices(builder.Configuration);
+
 var app = builder.Build();
 
-#region Pipeline (route-ları 100% görmək üçün)
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-
-app.UseRouting();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-// ✅ Debug: bütün route-ları göstər (route problemi varsa dərhal biləcəksən)
-app.MapGet("/_routes", (IEnumerable<EndpointDataSource> sources) =>
-{
-    var routes = sources
-        .SelectMany(s => s.Endpoints)
-        .OfType<RouteEndpoint>()
-        .Select(e => new
-        {
-            Route = e.RoutePattern.RawText,
-            e.DisplayName
-        });
-
-    return Results.Ok(routes);
-}).AllowAnonymous();
-
-app.MapControllers();
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "BinaLite API v1");
-        c.RoutePrefix = "swagger";
-    });
-}
+// ✅ Addım 7: Pipeline + Seed (RoleSeeder/AdminSeeder) hamısı burda
+app.ConfigurePipeline();
 
 app.Run();
-#endregion
