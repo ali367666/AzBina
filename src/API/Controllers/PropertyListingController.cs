@@ -3,9 +3,13 @@ using Application.Abstracts.Services;
 using Application.DTOs.MediaPropertyDTOs.RequestDTOs;
 using Application.DTOs.PropertyListeningDTOs.RequestDTOs;
 using AutoMapper;
+using Domain.Constants;
 using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace API.Controllers;
 
@@ -30,14 +34,21 @@ public class PropertyListingController : ControllerBase
         _mapper = mapper;
     }
 
-    // POST: api/PropertyListing (multipart/form-data)
+    [Authorize(Policy = Policies.ManageProperties)]
     [HttpPost]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> Create(
-        [FromForm] CreatePropertyListing dto,
-        IFormFileCollection? media,
-        CancellationToken ct)
+    [FromForm] CreatePropertyListing dto,
+    IFormFileCollection? media,
+    CancellationToken ct)
     {
+        // ✅ Token-dən userId götür
+        var sub = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                  ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(sub) || !int.TryParse(sub, out var userId))
+            return Unauthorized("Token daxilində userId tapılmadı.");
+
         List<MediaUploadInput>? mediaInputs = null;
 
         try
@@ -53,8 +64,10 @@ public class PropertyListingController : ControllerBase
                 }).ToList();
             }
 
-            var result = await _propertyListingService.CreatePropertyAsync(dto, mediaInputs, ct);
-            return Ok(result);
+            // ✅ userId-ni service-ə ötür
+            var result = await _propertyListingService.CreatePropertyAsync(dto, mediaInputs, userId, ct);
+
+            return result.Success ? Ok(result) : BadRequest(result);
         }
         finally
         {

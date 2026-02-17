@@ -2,10 +2,14 @@
 using Application.Abstracts.Services;
 using Application.DTOs.MediaPropertyDTOs.RequestDTOs;
 using Application.DTOs.PropertyListeningDTOs.RequestDTOs;
+using Application.Options;
 using Application.Shared.Helpers.Responses;
 using AutoMapper;
 using Domain.Entities;
 using FluentValidation;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
+using IEmailSender = Application.Abstracts.Services.IEmailSender;
 
 namespace Persistence.Services;
 
@@ -20,6 +24,12 @@ public class PropertyListingService : IPropertyListingService
     private readonly ICityRepository _cityRepository;
     private readonly IDistrictRepository _districtRepository;
 
+    private readonly IEmailSender _emailSender;
+    private readonly UserManager<User> _userManager;
+    private readonly EmailOptions _emailOptions;
+
+    
+
     public PropertyListingService(
         IPropertyListeningRepository propertyListingRepository,
         IMediaPropertyRepository mediaRepository,
@@ -27,7 +37,10 @@ public class PropertyListingService : IPropertyListingService
         IValidator<CreatePropertyListing> createValidator,
         IMapper mapper,
         ICityRepository cityRepository,
-        IDistrictRepository districtRepository)
+        IDistrictRepository districtRepository,
+        IEmailSender emailSender,
+        UserManager<User> userManager,
+        IOptions<EmailOptions> emailOptions)
     {
         _propertyListingRepository = propertyListingRepository;
         _mediaRepository = mediaRepository;
@@ -37,13 +50,18 @@ public class PropertyListingService : IPropertyListingService
         _mapper = mapper;
         _cityRepository = cityRepository;
         _districtRepository = districtRepository;
+
+        _emailSender = emailSender;
+        _userManager = userManager;
+        _emailOptions = emailOptions.Value;
     }
 
-    // ✅ INTERFACE-İN TƏLƏB ETDİYİ CREATE (media ilə)
+    // ✅ CREATE (media ilə)
     public async Task<BaseResponse> CreatePropertyAsync(
-        CreatePropertyListing dto,
-        List<MediaUploadInput>? media,
-        CancellationToken ct)
+    CreatePropertyListing dto,
+    List<MediaUploadInput>? media,
+    int userId,
+    CancellationToken ct)
     {
         await _createValidator.ValidateAndThrowAsync(dto, cancellationToken: ct);
 
@@ -55,7 +73,12 @@ public class PropertyListingService : IPropertyListingService
         if (!districtExists)
             return BaseResponse.Fail("Qeyd etdiyiniz District yoxdur");
 
+        // ✅ DTO -> PropertyListing (sadəcə FK-lar + əsas datalar)
         var property = _mapper.Map<PropertyListing>(dto);
+
+        // ✅ Bu elanı kim yaratdı?
+        property.UserId = userId;
+        property.CreatedAt = DateTime.UtcNow;
 
         await _propertyListingRepository.AddAsync(property, ct);
         await _propertyListingRepository.SaveChangesAsync(ct);
@@ -100,10 +123,75 @@ public class PropertyListingService : IPropertyListingService
             await _mediaRepository.SaveChangesAsync(ct);
         }
 
+        // ✅ City/District adlarını DB-dən oxu (mapper YOX!)
+        var cityName = await _cityRepository.GetNameByIdAsync(dto.CityId, ct);
+        var districtName = await _districtRepository.GetNameByIdAsync(dto.DistrictId, ct);
+
+        // ✅ Elan yaradıldı → elanı yaradan user-ə mail get
+        await SendPropertyCreatedEmailToOwnerAsync(property, cityName, districtName, userId, ct);
+
         return BaseResponse.Ok("Elan yaradıldı.");
     }
 
-    // ✅ INTERFACE-İN TƏLƏB ETDİYİ UPDATE (add/remove media ilə)
+    private async Task SendPropertyCreatedEmailToOwnerAsync(
+        PropertyListing property,
+        string? cityName,
+        string? districtName,
+        int userId,
+        CancellationToken ct)
+    {
+        if (!_emailOptions.Enabled) return;
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null) return;
+
+        var toEmail = user.Email;
+        if (string.IsNullOrWhiteSpace(toEmail)) return;
+
+        var subject = "Elanınız uğurla yaradıldı";
+
+        var safeCity = System.Net.WebUtility.HtmlEncode(cityName ?? property.CityId.ToString());
+        var safeDistrict = System.Net.WebUtility.HtmlEncode(districtName ?? property.DistrictId.ToString());
+
+        var html = $@"
+        <h2>Elan yaradıldı ✅</h2>
+        <p>Salam {System.Net.WebUtility.HtmlEncode(user.FullName ?? user.UserName ?? "")},</p>
+        <p>Elanınız aşağıdakı məlumatlarla yaradıldı:</p>
+        <hr/>
+        <table style='border-collapse:collapse;'>
+            <tr><td style='padding:4px 10px;'><b>Elan ID:</b></td><td style='padding:4px 10px;'>{property.Id}</td></tr>
+            <tr><td style='padding:4px 10px;'><b>Şəhər:</b></td><td style='padding:4px 10px;'>{safeCity}</td></tr>
+            <tr><td style='padding:4px 10px;'><b>Rayon:</b></td><td style='padding:4px 10px;'>{safeDistrict}</td></tr>
+            <tr><td style='padding:4px 10px;'><b>Tarix (UTC):</b></td><td style='padding:4px 10px;'>{property.CreatedAt:yyyy-MM-dd HH:mm}</td></tr>
+        </table>
+        <p>Uğurlar!</p>
+    ";
+
+        var text = $@"
+Elan yaradıldı ✅
+Salam {user.FullName ?? user.UserName},
+
+Elanınız aşağıdakı məlumatlarla yaradıldı:
+Elan ID: {property.Id}
+Şəhər: {cityName ?? property.CityId.ToString()}
+Rayon: {districtName ?? property.DistrictId.ToString()}
+Tarix (UTC): {property.CreatedAt:yyyy-MM-dd HH:mm}
+
+Uğurlar!
+";
+
+        try
+        {
+            await _emailSender.SendAsync(toEmail, subject, html, text, ct);
+        }
+        catch
+        {
+            // log yazmaq yaxşıdır (email fail olsa da create fail olmasın)
+        }
+    }
+
+
+    // ✅ UPDATE (səndə olduğu kimi saxladım)
     public async Task<BaseResponse> UpdatePropertyAsync(
         int id,
         CreatePropertyListing dto,
@@ -140,7 +228,6 @@ public class PropertyListingService : IPropertyListingService
                 var media = await _mediaRepository.GetByIdAsync(mediaId, ct);
                 if (media is null) continue;
 
-                // təhlükəsizlik: başqa listing-in mediası silinməsin
                 if (media.PropertyListingId != id) continue;
 
                 await _fileStorage.DeleteFileAsync(media.ObjectKey, ct);

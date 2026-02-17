@@ -9,5 +9,6 @@ public interface IAuthService
     Task<TokenResponse?> LoginAsync(LoginRequest request, CancellationToken ct = default);
 
     Task<TokenResponse?> RefreshTokenAsync(string refreshToken, CancellationToken ct = default);
+    Task<bool> ConfirmEmailAsync(int userId, string token, CancellationToken ct = default);
 
 }

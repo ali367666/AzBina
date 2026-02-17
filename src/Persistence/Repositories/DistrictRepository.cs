@@ -22,4 +22,11 @@ public class DistrictRepository:GenericRepository<District,int>,IDistrictReposit
         return await _context.Cities
             .AnyAsync(c => c.Id == id, ct);
     }
+    public async Task<string?> GetNameByIdAsync(int id, CancellationToken ct = default)
+    {
+        return await _context.Districts
+            .Where(x => x.Id == id)
+            .Select(x => x.Name)
+            .FirstOrDefaultAsync(ct);
+    }
 }

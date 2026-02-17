@@ -28,4 +28,11 @@ public class CityRepository: GenericRepository<City, int>, ICityRepository
             .Include(c => c.Districts)           // ✅ City -> Districts
             .FirstOrDefaultAsync(c => c.Id == id, ct);
     }
+    public async Task<string?> GetNameByIdAsync(int id, CancellationToken ct = default)
+    {
+        return await _context.Cities
+            .Where(x => x.Id == id)
+            .Select(x => x.Name)
+            .FirstOrDefaultAsync(ct);
+    }
 }
