@@ -1,6 +1,7 @@
 ﻿using Application.Abstracts.Services;
 using Application.DTOs.Auth;
 using Application.Shared.Helpers.Responses;
+using Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,12 +34,32 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
     {
-        var tokenResponse = await _authService.LoginAsync(request, ct);
+        try
+        {
+            var tokenResponse = await _authService.LoginAsync(request, ct);
 
-        if (tokenResponse is null)
-            return Unauthorized(BaseResponse<TokenResponse>.Fail("Invalid login or password."));
+            if (tokenResponse is null)
+                return Unauthorized(BaseResponse<TokenResponse>.Fail("Invalid login or password."));
 
-        return Ok(BaseResponse<TokenResponse>.Ok(tokenResponse));
+            return Ok(BaseResponse<TokenResponse>.Ok(tokenResponse));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(BaseResponse<TokenResponse>.Fail(ex.Message));
+        }
+    }
+
+
+    [HttpPost("admin/register-user")]
+    [Authorize(Roles = RoleNames.Admin)]
+    public async Task<IActionResult> AdminRegisterUser([FromBody] RegisterRequest request, CancellationToken ct)
+    {
+        var (success, error) = await _authService.RegisterAsync(request, ct);
+
+        if (!success)
+            return BadRequest(BaseResponse.Fail(error ?? "User creation failed."));
+
+        return Ok(BaseResponse.Ok("User yaradıldı."));
     }
 
     [HttpPost("refresh")]

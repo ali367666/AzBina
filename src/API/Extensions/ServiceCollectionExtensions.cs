@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Application.Abstracts.Services;
 using Application.Options;
+using Application.Shared.Helpers.Responses;
 using Domain.Constants;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -53,6 +54,23 @@ public static class ServiceCollectionExtensions
 
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret))
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = async context =>
+                    {
+                        context.HandleResponse();
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json";
+                        await context.Response.WriteAsJsonAsync(BaseResponse.Fail("Daxil olmaq lazımdır."));
+                    },
+                    OnForbidden = async context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        context.Response.ContentType = "application/json";
+                        await context.Response.WriteAsJsonAsync(BaseResponse.Fail("Yetkiniz yoxdur."));
+                    }
                 };
             });
 

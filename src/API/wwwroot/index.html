@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AzBina Panel</title>
+  <link rel="stylesheet" href="/app/styles.css" />
+</head>
+<body>
+  <div id="loginScreen" class="auth-page">
+    <section class="auth-card">
+      <h1>AzBina Login</h1>
+      <p class="muted">Sistemə daxil olun və modulları idarə edin.</p>
+      <form id="loginForm" class="stack">
+        <input id="login" type="text" placeholder="Login (username və ya email)" required />
+        <input id="password" type="password" placeholder="Şifrə" required />
+        <button type="submit">Daxil ol</button>
+      </form>
+      <p id="loginError" class="error"></p>
+    </section>
+  </div>
+
+  <div id="appShell" class="app-shell hidden">
+    <aside class="sidebar">
+      <h2>AzBina</h2>
+      <p id="welcomeText" class="muted">Xoş gəlmisiniz</p>
+
+      <nav class="menu">
+        <button class="menu-item active" data-module="city">City</button>
+        <button class="menu-item" data-module="district">District</button>
+        <button class="menu-item" data-module="listing">Elanlar</button>
+        <button class="menu-item" data-module="users">Userlər</button>
+      </nav>
+
+      <button id="logoutBtn" class="logout-btn">Çıxış</button>
+    </aside>
+
+    <main class="content">
+      <header class="content-header">
+        <h1 id="moduleTitle">City Modulu</h1>
+        <button id="refreshBtn">Yenilə</button>
+      </header>
+
+      <section id="cityModule" class="module">
+        <h3>City CRUD</h3>
+        <form id="cityForm" class="inline-form">
+          <input id="cityName" placeholder="Yeni city adı" required />
+          <button type="submit">Yarat</button>
+        </form>
+        <ul id="cityList" class="data-list"></ul>
+      </section>
+
+      <section id="districtModule" class="module hidden">
+        <h3>District CRUD</h3>
+        <form id="districtForm" class="inline-form">
+          <input id="districtName" placeholder="Yeni district adı" required />
+          <input id="districtCityId" type="number" placeholder="CityId" required />
+          <button type="submit">Yarat</button>
+        </form>
+        <ul id="districtList" class="data-list"></ul>
+      </section>
+
+      <section id="listingModule" class="module hidden">
+        <h3>Elan CRUD (Create + List + Delete)</h3>
+        <form id="listingForm" class="grid-form">
+          <input id="title" placeholder="Başlıq" required />
+          <textarea id="description" placeholder="Açıqlama" required></textarea>
+          <select id="listingType"><option value="0">Satılır</option><option value="1">Kirayə</option></select>
+          <select id="propertyType">
+            <option value="0">Apartment</option><option value="1">NewBuilding</option><option value="2">OldBuilding</option>
+            <option value="3">House</option><option value="4">Office</option><option value="5">Garage</option><option value="6">Land</option>
+          </select>
+          <input id="area" type="number" step="0.1" placeholder="Sahə" required />
+          <input id="rooms" type="number" placeholder="Otaq sayı" required />
+          <select id="renovationStatus">
+            <option value="0">Unrenovated</option><option value="1">OldRenovation</option><option value="2">GoodCondition</option>
+            <option value="3">FullyRenovated</option><option value="4">NewlyRenovated</option>
+          </select>
+          <input id="cityId" type="number" placeholder="CityId" required />
+          <input id="districtId" type="number" placeholder="DistrictId" required />
+          <button type="submit">Elan yarat</button>
+        </form>
+        <ul id="listingList" class="data-list"></ul>
+      </section>
+
+
+      <section id="usersModule" class="module hidden">
+        <h3>User yarat (yalnız Admin)</h3>
+        <form id="userForm" class="grid-form">
+          <input id="newUserFullName" placeholder="Full name" required />
+          <input id="newUserName" placeholder="User name" required />
+          <input id="newUserEmail" type="email" placeholder="Email" required />
+          <input id="newUserPassword" type="password" placeholder="Password" required />
+          <button type="submit">User yarat</button>
+        </form>
+        <p class="muted">Admin deyilsinizsə API `Yetkiniz yoxdur.` mesajı qaytaracaq.</p>
+      </section>
+
+      <section class="log-card">
+        <h3>Log</h3>
+        <pre id="log"></pre>
+      </section>
+    </main>
+  </div>
+
+  <script src="/app/main.js" defer></script>
+</body>
+</html>
