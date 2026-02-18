@@ -18,7 +18,7 @@ Brauzerdə açın:
 
 ## Frontend-də nələr var?
 
-- Login formu (`/api/Auth/login`)
+- Login formu (`/api/Auth/login`, `login` field-i username və ya email qəbul edir)
 - City + District listəsi (`/api/City`, `/api/District`)
 - Property listing görüntüləmə (`/api/PropertyListing`)
 - Yeni property yaratma formu (`/api/PropertyListing`, Bearer token ilə)

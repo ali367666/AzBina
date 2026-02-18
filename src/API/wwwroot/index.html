@@ -9,21 +9,34 @@
 <body>
   <header class="container">
     <h1>AzBina Web Application</h1>
-    <p>API üçün sadə və production-a yaxın frontend panel.</p>
+    <p>User ilə daxil ol, modulları istifadə et: City, District, Elan.</p>
   </header>
 
   <main class="container grid">
     <section class="card">
       <h2>Auth</h2>
       <form id="loginForm" class="stack">
-        <input id="email" type="email" placeholder="Email" required />
+        <input id="login" type="text" placeholder="Login (username və ya email)" required />
         <input id="password" type="password" placeholder="Şifrə" required />
-        <button type="submit">Login</button>
+        <button type="submit">Daxil ol</button>
       </form>
-      <p id="authState" class="muted">Token yoxdur.</p>
+      <div class="stack top-gap">
+        <button id="logoutBtn" class="secondary" type="button">Çıxış et</button>
+        <p id="authState" class="muted">Token yoxdur.</p>
+      </div>
     </section>
 
-    <section class="card">
+    <section class="card" id="modulesCard">
+      <h2>Modullar</h2>
+      <p class="muted" id="moduleHint">Login olmadan yalnız oxuma əməliyyatları mümkündür.</p>
+      <div class="chip-row">
+        <span class="chip">City</span>
+        <span class="chip">District</span>
+        <span class="chip">Elanlar</span>
+      </div>
+    </section>
+
+    <section class="card card-full">
       <h2>Location</h2>
       <button id="loadLocations">City + District yüklə</button>
       <div class="columns">
@@ -44,8 +57,8 @@
       <ul id="listingList" class="listing-grid"></ul>
     </section>
 
-    <section class="card card-full">
-      <h2>Yeni Elan (Admin policy lazımdır)</h2>
+    <section class="card card-full" id="createSection">
+      <h2>Yeni Elan (login lazımdır)</h2>
       <form id="listingForm" class="grid-form">
         <input id="title" placeholder="Başlıq" required />
         <textarea id="description" placeholder="Açıqlama" required></textarea>

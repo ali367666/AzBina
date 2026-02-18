@@ -58,7 +58,7 @@ public class PropertyListingController : ControllerBase
         return result.Success ? Ok(result) : NotFound(result);
     }
 
-    [Authorize(Policy = Policies.ManageProperties)]
+    [Authorize]
     [HttpPost]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> Create(
@@ -102,6 +102,7 @@ public class PropertyListingController : ControllerBase
     }
 
     // PUT: api/PropertyListing/{id} (multipart/form-data)
+    [Authorize(Policy = Policies.ManageProperties)]
     [HttpPut("{id:int}")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> Update(
@@ -138,6 +139,7 @@ public class PropertyListingController : ControllerBase
     }
 
     // POST: api/PropertyListing/{propertyId}/media (tək fayl upload, max 5)
+    [Authorize]
     [HttpPost("{propertyId:int}/media")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UploadSingleMedia(
@@ -193,6 +195,7 @@ public class PropertyListingController : ControllerBase
     }
 
     // DELETE: api/PropertyListing/media/{id}
+    [Authorize(Policy = Policies.ManageProperties)]
     [HttpDelete("media/{id:int}")]
     public async Task<IActionResult> DeleteMedia(int id, CancellationToken ct)
     {

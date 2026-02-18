@@ -74,6 +74,7 @@ public class DistrictService:IDistrictService
         return districts
             .Select(d => new GetAllDistrict
             {
+                Id = d.Id,
                 Name = d.Name,
                 CityId = d.CityId
             })
