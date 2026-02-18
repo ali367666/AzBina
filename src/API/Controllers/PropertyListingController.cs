@@ -34,6 +34,30 @@ public class PropertyListingController : ControllerBase
         _mapper = mapper;
     }
 
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAll(CancellationToken ct = default)
+    {
+        var result = await _propertyListingService.GetAllPropertyAsync(ct);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:int}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetById(int id, CancellationToken ct = default)
+    {
+        var result = await _propertyListingService.GetByIdPropertyAsync(id, ct);
+        return result.Success ? Ok(result) : NotFound(result);
+    }
+
+    [Authorize(Policy = Policies.ManageProperties)]
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteById(int id, CancellationToken ct = default)
+    {
+        var result = await _propertyListingService.DeleteByIdPropertyAsync(id, ct);
+        return result.Success ? Ok(result) : NotFound(result);
+    }
+
     [Authorize(Policy = Policies.ManageProperties)]
     [HttpPost]
     [Consumes("multipart/form-data")]
