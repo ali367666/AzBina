@@ -38,3 +38,13 @@ dotnet publish src/API/API.csproj -c Release -o ./publish
 ```
 
 Sonra `./publish/API` binary-ni serverdə run edə bilərsiniz.
+
+
+### Swagger açılırsa (troubleshooting)
+
+Əgər yenə Swagger açılırsa, adətən IDE köhnə profile/url saxlayır:
+
+1. Run profile olaraq `http` və ya `https` seçin (Project profile).
+2. Browserdə birbaşa `http://localhost:5197/index.html` və ya `https://localhost:7273/index.html` açın.
+3. Visual Studio istifadə edirsinizsə, stop edib yenidən run edin (gərəkirsə `.vs` cache-i təmizləyin).
+4. Swagger yenə lazımdırsa əl ilə `/swagger` yazın.
