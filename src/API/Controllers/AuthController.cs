@@ -1,6 +1,7 @@
 ﻿using Application.Abstracts.Services;
 using Application.DTOs.Auth;
 using Application.Shared.Helpers.Responses;
+using Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -46,6 +47,19 @@ public class AuthController : ControllerBase
         {
             return BadRequest(BaseResponse<TokenResponse>.Fail(ex.Message));
         }
+    }
+
+
+    [HttpPost("admin/register-user")]
+    [Authorize(Roles = RoleNames.Admin)]
+    public async Task<IActionResult> AdminRegisterUser([FromBody] RegisterRequest request, CancellationToken ct)
+    {
+        var (success, error) = await _authService.RegisterAsync(request, ct);
+
+        if (!success)
+            return BadRequest(BaseResponse.Fail(error ?? "User creation failed."));
+
+        return Ok(BaseResponse.Ok("User yaradıldı."));
     }
 
     [HttpPost("refresh")]
