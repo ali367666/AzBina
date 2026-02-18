@@ -251,12 +251,15 @@ async function loadListings() {
     const res = await api('PropertyListing');
     const listings = res?.data || res || [];
 
-    el.listingList.innerHTML = listings.map((x) => `
+    el.listingList.innerHTML = listings.map((x) => {
+      const canDelete = Number.isInteger(x.id) || /^\d+$/.test(String(x.id ?? ''));
+      return `
       <li>
         <span>#${x.id ?? '-'} - ${escapeHtml(x.title ?? '')} (City:${x.cityId ?? '-'}, District:${x.districtId ?? '-'})</span>
-        <div class="row-actions"><button class="danger" data-id="${x.id}" data-act="delete">Sil</button></div>
+        <div class="row-actions">${canDelete ? `<button class="danger" data-id="${x.id}" data-act="delete">Sil</button>` : ''}</div>
       </li>
-    `).join('');
+    `;
+    }).join('');
 
     el.listingList.querySelectorAll('button[data-act="delete"]').forEach((b) => b.addEventListener('click', () => deleteListing(b.dataset.id)));
     log(`Elan sayı: ${listings.length}`);

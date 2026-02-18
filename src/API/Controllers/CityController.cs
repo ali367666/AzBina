@@ -1,4 +1,4 @@
-﻿using Application.Abstracts.Services;
+using Application.Abstracts.Services;
 using Application.DTOs.CityDTOs.RequestDTOs;
 using Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
@@ -17,13 +17,11 @@ public class CityController : ControllerBase
         _cityService = cityService;
     }
 
-    // Açıq qala bilər
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> GetAll(CancellationToken ct = default)
         => Ok(await _cityService.GetAllCityAsync(ct));
 
-    // Açıq qala bilər
     [HttpGet("{id:int}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetById([FromRoute] int id, CancellationToken ct = default)
@@ -32,7 +30,6 @@ public class CityController : ControllerBase
         return result is null ? NotFound() : Ok(result);
     }
 
-    // Admin only
     [Authorize(Policy = Policies.ManageCities)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCityDTOs dto, CancellationToken ct = default)
@@ -41,16 +38,13 @@ public class CityController : ControllerBase
         return !result.Success ? BadRequest(result) : Ok(result);
     }
 
-    // Admin only
     [Authorize(Policy = Policies.ManageCities)]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] CreateCityDTOs dto, CancellationToken ct = default)
         => Ok(await _cityService.UpdateCityAsync(id, dto, ct));
 
-    // Admin only
     [Authorize(Policy = Policies.ManageCities)]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken ct = default)
         => Ok(await _cityService.DeleteByIdCityAsync(id, ct));
-
 }
