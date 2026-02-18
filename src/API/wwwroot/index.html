@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AzBina Web App</title>
+  <link rel="stylesheet" href="/app/styles.css" />
+</head>
+<body>
+  <header class="container">
+    <h1>AzBina Web Application</h1>
+    <p>API üçün sadə və production-a yaxın frontend panel.</p>
+  </header>
+
+  <main class="container grid">
+    <section class="card">
+      <h2>Auth</h2>
+      <form id="loginForm" class="stack">
+        <input id="email" type="email" placeholder="Email" required />
+        <input id="password" type="password" placeholder="Şifrə" required />
+        <button type="submit">Login</button>
+      </form>
+      <p id="authState" class="muted">Token yoxdur.</p>
+    </section>
+
+    <section class="card">
+      <h2>Location</h2>
+      <button id="loadLocations">City + District yüklə</button>
+      <div class="columns">
+        <div>
+          <h3>Cities</h3>
+          <ul id="cityList"></ul>
+        </div>
+        <div>
+          <h3>Districts</h3>
+          <ul id="districtList"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="card card-full">
+      <h2>Elanlar</h2>
+      <button id="loadListings">Elanları yenilə</button>
+      <ul id="listingList" class="listing-grid"></ul>
+    </section>
+
+    <section class="card card-full">
+      <h2>Yeni Elan (Admin policy lazımdır)</h2>
+      <form id="listingForm" class="grid-form">
+        <input id="title" placeholder="Başlıq" required />
+        <textarea id="description" placeholder="Açıqlama" required></textarea>
+        <select id="listingType">
+          <option value="0">Satılır</option>
+          <option value="1">Kirayə</option>
+        </select>
+        <select id="propertyType">
+          <option value="0">Apartment</option>
+          <option value="1">NewBuilding</option>
+          <option value="2">OldBuilding</option>
+          <option value="3">House</option>
+          <option value="4">Office</option>
+          <option value="5">Garage</option>
+          <option value="6">Land</option>
+        </select>
+        <input id="area" type="number" step="0.1" placeholder="Sahə" required />
+        <input id="rooms" type="number" placeholder="Otaq sayı" required />
+        <select id="renovationStatus">
+          <option value="0">Unrenovated</option>
+          <option value="1">OldRenovation</option>
+          <option value="2">GoodCondition</option>
+          <option value="3">FullyRenovated</option>
+          <option value="4">NewlyRenovated</option>
+        </select>
+        <input id="cityId" type="number" placeholder="CityId" required />
+        <input id="districtId" type="number" placeholder="DistrictId" required />
+        <button type="submit">Elan yarat</button>
+      </form>
+    </section>
+
+    <section class="card card-full">
+      <h2>API Log</h2>
+      <pre id="log"></pre>
+    </section>
+  </main>
+
+  <script src="/app/main.js" defer></script>
+</body>
+</html>

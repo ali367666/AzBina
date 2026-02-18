@@ -37,6 +37,7 @@ public static class WebApplicationExtensions
         app.UseAuthorization();
 
         app.MapControllers();
+        app.MapFallbackToFile("index.html");
 
         // 7.1 Seed (app start olanda 1 dəfə)
         using (var scope = app.Services.CreateScope())
