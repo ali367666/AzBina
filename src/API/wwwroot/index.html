@@ -29,6 +29,7 @@
         <button class="menu-item active" data-module="city">City</button>
         <button class="menu-item" data-module="district">District</button>
         <button class="menu-item" data-module="listing">Elanlar</button>
+        <button class="menu-item" data-module="users">Userlər</button>
       </nav>
 
       <button id="logoutBtn" class="logout-btn">Çıxış</button>
@@ -80,6 +81,19 @@
           <button type="submit">Elan yarat</button>
         </form>
         <ul id="listingList" class="data-list"></ul>
+      </section>
+
+
+      <section id="usersModule" class="module hidden">
+        <h3>User yarat (yalnız Admin)</h3>
+        <form id="userForm" class="grid-form">
+          <input id="newUserFullName" placeholder="Full name" required />
+          <input id="newUserName" placeholder="User name" required />
+          <input id="newUserEmail" type="email" placeholder="Email" required />
+          <input id="newUserPassword" type="password" placeholder="Password" required />
+          <button type="submit">User yarat</button>
+        </form>
+        <p class="muted">Admin deyilsinizsə API `Yetkiniz yoxdur.` mesajı qaytaracaq.</p>
       </section>
 
       <section class="log-card">

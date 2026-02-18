@@ -19,10 +19,10 @@ Brauzerdə açın:
 ## Frontend-də nələr var?
 
 - İlk açılışda yalnız Login ekranı görünür.
-- Daxil olduqdan sonra solda modul menyusu açılır: `City`, `District`, `Elanlar`.
+- Daxil olduqdan sonra solda modul menyusu açılır: `City`, `District`, `Elanlar`, `Userlər`.
 - Hər modulda list + create + update + delete əməliyyatları UI-dan idarə olunur.
 - Login endpoint-i `/api/Auth/login` üçün `login` (username/email) və `password` göndərilir.
-- Qeyd: `City` və bəzi `Elan` əməliyyatları backend policy səbəbi ilə admin icazəsi tələb edə bilər.
+- Qeyd: `City`, bəzi `Elan` əməliyyatları və `Auth/admin/register-user` endpoint-i admin icazəsi tələb edir.
 
 ## Production-a çıxarmaq üçün qısa plan
 

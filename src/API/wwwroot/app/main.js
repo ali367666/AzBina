@@ -18,6 +18,7 @@ const el = {
   cityModule: document.getElementById('cityModule'),
   districtModule: document.getElementById('districtModule'),
   listingModule: document.getElementById('listingModule'),
+  usersModule: document.getElementById('usersModule'),
   cityForm: document.getElementById('cityForm'),
   cityName: document.getElementById('cityName'),
   cityList: document.getElementById('cityList'),
@@ -26,7 +27,8 @@ const el = {
   districtCityId: document.getElementById('districtCityId'),
   districtList: document.getElementById('districtList'),
   listingForm: document.getElementById('listingForm'),
-  listingList: document.getElementById('listingList')
+  listingList: document.getElementById('listingList'),
+  userForm: document.getElementById('userForm')
 };
 
 boot();
@@ -49,6 +51,7 @@ function bindEvents() {
   el.cityForm.addEventListener('submit', createCity);
   el.districtForm.addEventListener('submit', createDistrict);
   el.listingForm.addEventListener('submit', createListing);
+  el.userForm.addEventListener('submit', createUserByAdmin);
 }
 
 function showLogin() {
@@ -102,6 +105,7 @@ function switchModule(name) {
   el.cityModule.classList.toggle('hidden', name !== 'city');
   el.districtModule.classList.toggle('hidden', name !== 'district');
   el.listingModule.classList.toggle('hidden', name !== 'listing');
+  el.usersModule.classList.toggle('hidden', name !== 'users');
   el.moduleTitle.textContent = `${capitalize(name)} Modulu`;
   loadActiveModule();
 }
@@ -113,6 +117,7 @@ async function loadActiveModule() {
   if (state.module === 'city') await loadCities();
   if (state.module === 'district') await loadDistricts();
   if (state.module === 'listing') await loadListings();
+  if (state.module === 'users') log('User modulu hazırdır. Admin user yarada bilər.');
 }
 
 async function loadCities() {
@@ -291,6 +296,26 @@ async function deleteListing(id) {
     await loadListings();
   } catch (err) {
     log(`Elan silmə xətası: ${normalizeError(err)} (Delete üçün admin policy tələb oluna bilər)`);
+  }
+}
+
+
+async function createUserByAdmin(e) {
+  e.preventDefault();
+
+  const payload = {
+    fullName: document.getElementById('newUserFullName').value.trim(),
+    userName: document.getElementById('newUserName').value.trim(),
+    email: document.getElementById('newUserEmail').value.trim(),
+    password: document.getElementById('newUserPassword').value
+  };
+
+  try {
+    const res = await api('Auth/admin/register-user', { method: 'POST', body: JSON.stringify(payload) });
+    log(res?.message || 'User yaradıldı.');
+    e.target.reset();
+  } catch (err) {
+    log(`User yaratma xətası: ${normalizeError(err)}`);
   }
 }
 
