@@ -42,12 +42,9 @@ public static class WebApplicationExtensions
             var roleManager = sp.GetRequiredService<RoleManager<IdentityRole<int>>>();
             await RoleSeeder.SeedAsync(roleManager);
 
-            if (app.Environment.IsDevelopment())
-            {
-                var userManager = sp.GetRequiredService<UserManager<User>>();
-                var seedOptions = sp.GetRequiredService<IOptions<SeedOptions>>();
-                await AdminSeeder.SeedAsync(userManager, seedOptions);
-            }
+            var userManager = sp.GetRequiredService<UserManager<User>>();
+            var seedOptions = sp.GetRequiredService<IOptions<SeedOptions>>();
+            await AdminSeeder.SeedAsync(userManager, seedOptions);
         }
 
         return app;

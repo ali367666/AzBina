@@ -1,4 +1,4 @@
-﻿using Application.Options;
+using Application.Options;
 using Domain.Constants;
 using Domain.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -12,15 +12,25 @@ public static class AdminSeeder
     {
         var seed = seedOptions.Value;
 
-        // Config yoxdursa seed etmə
         if (string.IsNullOrWhiteSpace(seed.AdminEmail) ||
             string.IsNullOrWhiteSpace(seed.AdminPassword))
             return;
 
-        // Artıq varsa seed etmə
         var existing = await userManager.FindByEmailAsync(seed.AdminEmail);
+
         if (existing is not null)
+        {
+            if (!await userManager.IsInRoleAsync(existing, RoleNames.Admin))
+                await userManager.AddToRoleAsync(existing, RoleNames.Admin);
+
+            if (!existing.EmailConfirmed)
+            {
+                existing.EmailConfirmed = true;
+                await userManager.UpdateAsync(existing);
+            }
+
             return;
+        }
 
         var admin = new User
         {
