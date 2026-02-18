@@ -1,5 +1,6 @@
 using Application.Abstracts.Services;
 using Application.DTOs.CityDTOs.RequestDTOs;
+using Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,7 +30,7 @@ public class CityController : ControllerBase
         return result is null ? NotFound() : Ok(result);
     }
 
-    [Authorize]
+    [Authorize(Policy = Policies.ManageCities)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCityDTOs dto, CancellationToken ct = default)
     {
@@ -37,12 +38,12 @@ public class CityController : ControllerBase
         return !result.Success ? BadRequest(result) : Ok(result);
     }
 
-    [Authorize]
+    [Authorize(Policy = Policies.ManageCities)]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] CreateCityDTOs dto, CancellationToken ct = default)
         => Ok(await _cityService.UpdateCityAsync(id, dto, ct));
 
-    [Authorize]
+    [Authorize(Policy = Policies.ManageCities)]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken ct = default)
         => Ok(await _cityService.DeleteByIdCityAsync(id, ct));
