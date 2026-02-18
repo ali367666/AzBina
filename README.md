@@ -53,6 +53,7 @@ Sonra `./publish/API` binary-ni serverdə run edə bilərsiniz.
 
 ## Admin seed (Development)
 
-- Development mühitində app start olanda `Seed` konfiqurasiyasındakı admin istifadəçisi yoxdursa yenidən yaradılır.
+- App start olanda `Seed` konfiqurasiyasındakı admin istifadəçisi yoxdursa avtomatik yaradılır.
 - Hazırkı default: `admin@mail.com` / `Admin123!`.
 - Admini silsəniz, app-i yenidən başladanda seed yenidən düşəcək.
+- Əgər user var amma Admin rolu yoxdursa, seed həmin user-ə Admin rolunu yenidən verir.
