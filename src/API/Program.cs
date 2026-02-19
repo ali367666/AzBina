@@ -78,6 +78,9 @@ builder.Services
         options.Password.RequireUppercase = true;
         options.Password.RequireLowercase = true;
         options.Password.RequireNonAlphanumeric = true;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
+        options.Lockout.MaxFailedAccessAttempts = 4;
+        options.Lockout.AllowedForNewUsers = true;
     })
     .AddEntityFrameworkStores<BinaDbContext>()
     .AddDefaultTokenProviders();
@@ -97,6 +100,7 @@ builder.Services.AddScoped<ICityService, CityService>();
 builder.Services.AddScoped<IDistrictService, DistrictService>();
 builder.Services.AddScoped<IPropertyListingService, PropertyListingService>();
 builder.Services.AddScoped<IMediaPropertyService, MediaPropertyService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 #endregion
 
 #region Auth / Token Services
