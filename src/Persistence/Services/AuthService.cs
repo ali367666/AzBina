@@ -99,31 +99,70 @@ public sealed class AuthService : IAuthService
         return (true, null);
     }
 
-    public async Task<TokenResponse?> LoginAsync(LoginRequest request, CancellationToken ct = default)
+    public async Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken ct = default)
     {
         var user = await _userManager.FindByEmailAsync(request.Login)
                    ?? await _userManager.FindByNameAsync(request.Login);
 
         if (user is null)
-            return null;
-
-        var check = await _signInManager.CheckPasswordSignInAsync(
-            user, request.Password, lockoutOnFailure: false);
-
-        if (!check.Succeeded)
-            return null;
-
-        // ✅ Email təsdiq yoxlaması
-        if (!user.EmailConfirmed)
         {
-            // Spec: aydın mesaj
-            // Səndə LoginAsync TokenResponse? qaytardığı üçün burada "null" qaytarmaq
-            // mesajı itirir. Daha yaxşısı: TokenResponse-a Error əlavə etmək və ya Result pattern.
-            // Amma spec tələb edir deyə ən azından Exception da atmaq olar (controller tutub 400 versin).
-            throw new InvalidOperationException("Email təsdiqlənməyib. Zəhmət olmasa emailinizə göndərilən təsdiq linkinə keçid edin.");
+            return new LoginResult
+            {
+                Success = false,
+                Message = "İstifadəçi adı və ya şifrə yanlışdır."
+            };
         }
 
-        return await BuildTokenResponseAsync(user, ct);
+        var check = await _signInManager.CheckPasswordSignInAsync(
+            user, request.Password, lockoutOnFailure: true);
+
+        var freshUser = await _userManager.FindByIdAsync(user.Id.ToString()) ?? user;
+
+        if (check.IsLockedOut)
+        {
+            return new LoginResult
+            {
+                Success = false,
+                FailedAttemptCount = freshUser.AccessFailedCount,
+                RemainingAttemptsToLockout = 0,
+                Message = "Hesab müvəqqəti bloklandı. Zəhmət olmasa bir az sonra yenidən cəhd edin."
+            };
+        }
+
+        if (!check.Succeeded)
+        {
+            var maxAttempts = _userManager.Options.Lockout.MaxFailedAccessAttempts;
+            var failedCount = freshUser.AccessFailedCount;
+            var remainingAttempts = Math.Max(0, maxAttempts - failedCount);
+
+            var advice = failedCount >= 3
+                ? $"Siz artıq {failedCount} dəfə şifrəni səhv daxil etmisiniz. Növbəti cəhddə hesab bloklana bilər."
+                : "İstifadəçi adı və ya şifrə yanlışdır.";
+
+            return new LoginResult
+            {
+                Success = false,
+                FailedAttemptCount = failedCount,
+                RemainingAttemptsToLockout = remainingAttempts,
+                Message = advice
+            };
+        }
+
+        if (!freshUser.EmailConfirmed)
+        {
+            return new LoginResult
+            {
+                Success = false,
+                Message = "Email təsdiqlənməyib. Zəhmət olmasa emailinizə göndərilən təsdiq linkinə keçid edin."
+            };
+        }
+
+        return new LoginResult
+        {
+            Success = true,
+            Message = "Giriş uğurludur.",
+            Token = await BuildTokenResponseAsync(freshUser, ct)
+        };
     }
 
     public async Task<TokenResponse?> RefreshTokenAsync(string refreshToken, CancellationToken ct = default)

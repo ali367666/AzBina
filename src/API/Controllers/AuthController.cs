@@ -33,12 +33,12 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
     {
-        var tokenResponse = await _authService.LoginAsync(request, ct);
+        var loginResult = await _authService.LoginAsync(request, ct);
 
-        if (tokenResponse is null)
-            return Unauthorized(BaseResponse<TokenResponse>.Fail("Invalid login or password."));
+        if (!loginResult.Success)
+            return Unauthorized(BaseResponse.Fail(loginResult.Message));
 
-        return Ok(BaseResponse<TokenResponse>.Ok(tokenResponse));
+        return Ok(BaseResponse<TokenResponse>.Ok(loginResult.Token!));
     }
 
     [HttpPost("refresh")]
